@@ -1,0 +1,245 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#090909] text-[#F5F1E8] font-sans antialiased overflow-x-hidden;
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: 'Cormorant Garamond', 'Askan', Georgia, serif;
+    font-weight: 300;
+  }
+}
+
+/* ─── Surfaces ─────────────────────────────────────────────────────────────
+   A section declares its ground with the `surface` prop on <Section>, or by
+   spreading surfaceProps() if it is not built with <Section>. That publishes
+   the variables; these three rules spend them. See src/components/ui/Section.jsx
+   for the surface table and the rule that governs which section takes which.
+
+   Written as plain classes rather than Tailwind utilities so that a component
+   can say what a colour *is for* — muted body copy, a raised panel, a rule —
+   instead of naming a hex that is only correct on one of four grounds. */
+@layer components {
+  [data-surface] {
+    background-color: var(--surface);
+    color: var(--ink);
+  }
+
+  /* One step from the current ground. A card on ivory takes ivory-deep; the
+     same card on an ivory-deep section takes ivory. Always legible, never
+     needs to know where it is. */
+  .surface-raised {
+    background-color: var(--surface-raised);
+  }
+
+  .ink-muted {
+    color: var(--ink-muted);
+  }
+
+  .ink-faint {
+    color: var(--ink-faint);
+  }
+
+  /* The brand red #cc0000 on light grounds, a legible tint of it on dark.
+     Use this rather than text-brand anywhere the ground can change — the
+     brand red only clears 4.5:1 on the light family. */
+  .accent {
+    color: var(--accent);
+  }
+
+  /* Hover accent for a child of a `group`. Tailwind's group-hover: variant
+     can't reach a plain class, so this pairs with `.accent` for the cases
+     where the hover colour must follow the ground rather than being fixed. */
+  .group:hover .group-hover-accent {
+    color: var(--accent);
+  }
+
+  .rule {
+    border-color: var(--rule);
+  }
+
+  /* For grid gaps and dividers drawn as background rather than border. */
+  .rule-fill {
+    background-color: var(--rule);
+  }
+
+  /* A panel that sits flush with its ground until hovered, then lifts one
+     step. Needs to be a class, not an inline style, to carry the :hover. */
+  .hover-raise {
+    background-color: var(--surface);
+  }
+
+  .hover-raise:hover {
+    background-color: var(--surface-raised);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #090909;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(245, 241, 232, 0.2);
+  border-radius: 2px;
+}
+
+/* Hides the scrollbar on a container that still scrolls. Applied to the
+   Surfaces card rail, which is dragged rather than read by its bar — the
+   global track above is near-black and cut a dark band across an ivory
+   section. The class was already in the markup but came from the
+   tailwind-scrollbar-hide plugin, which this project doesn't load, so it
+   had never done anything. Defined here rather than adding the plugin for
+   one utility. */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom Cursor Hide — Club page only */
+@media (pointer: fine) {
+  .club-page,
+  .club-page a,
+  .club-page button {
+    cursor: none !important;
+  }
+}
+
+/* Hover Inversion Background Fill Micro-Interaction */
+.hover-invert {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+  transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-invert::before {
+  content: '';
+  position: absolute;
+  inset: -2px -6px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: -1;
+  border-radius: 2px;
+  opacity: 0.15;
+}
+
+.hover-invert:hover::before {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Audio visualizer bar animation */
+@keyframes audioPulse {
+  0% { height: 3px; }
+  100% { height: 14px; }
+}
+
+.animate-audio-bar {
+  animation: audioPulse 1.2s infinite ease-in-out alternate;
+}
+
+/* ─── Circuit lap marker ───────────────────────────────────────────────────
+   Styles for <CircuitTrace>. The line itself takes `currentColor`, so the
+   drawing follows whatever section it sits in; only the laser is fixed.
+   See src/components/CircuitTrace.jsx for how the beam is constructed. */
+
+.circuit-figure {
+  /* Both are deliberately off the site palette. An emitted core has to
+     out-burn its own trail or the whole thing reads as a painted line.
+     On a dark ground the beam needs to lift to #C6473A or it goes muddy. */
+  --laser: #8b0000;
+  --laser-hot: #e03a2b;
+
+  /* Sized to fit comfortably beside text in a 2-column layout */
+  --figure-h: min(78vh, 760px);
+  position: relative;
+  height: var(--figure-h);
+  width: min(100%, calc(var(--figure-h) * 727 / 1020));
+  max-width: 100%;
+  aspect-ratio: 727 / 1020;
+  margin-inline: auto;
+}
+
+/* On smaller viewports or stacked layout, size by width */
+@media (max-width: 1024px) {
+  .circuit-figure {
+    width: 100%;
+    max-width: 540px;
+    height: auto;
+    aspect-ratio: 727 / 1020;
+  }
+}
+
+.circuit-figure svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.circuit-trace {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* A highlight that sweeps one lap of the line, independent of the marker.
+   --len is written from the measured path length so the dash completes
+   exactly one lap per cycle. */
+.circuit-sweep {
+  stroke-dasharray: 140 var(--len, 3000);
+  stroke-dashoffset: 0;
+  animation: circuit-pass 7s linear infinite;
+}
+
+@keyframes circuit-pass {
+  to {
+    stroke-dashoffset: calc(-1 * (var(--len, 3000) + 140));
+  }
+}
+
+/* --lap-trail and --lap-trail-steps are read by the component via
+   getComputedStyle — they are its public tuning surface. */
+.lap-marker {
+  --lap-trail: 0.045; /* beam length as a share of one lap */
+  --lap-trail-steps: 16; /* how finely the beam is sampled */
+  filter: url(#m1-lap-glow);
+}
+
+.lap-fade-tail {
+  stop-color: var(--laser);
+  stop-opacity: 0;
+}
+
+.lap-fade-head {
+  stop-color: var(--laser);
+  stop-opacity: 1;
+}
+
+.lap-trail {
+  fill: none;
+  stroke: url(#m1-lap-fade);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lap-dot {
+  fill: var(--laser-hot);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circuit-sweep {
+    animation: none;
+  }
+}

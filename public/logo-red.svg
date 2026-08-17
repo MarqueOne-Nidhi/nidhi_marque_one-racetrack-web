@@ -1,0 +1,12 @@
+<svg viewBox="0 0 406 406" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Left Ribbon -->
+  <path
+    d="M 0 259 L 143 0 L 203 101 L 286 259 L 203 404 L 203 334 L 248 259 L 203 177 L 143 75 L 49.5 259 Z"
+    fill="#cc0000"
+  />
+  <!-- Right Ribbon -->
+  <path
+    d="M 406 259 L 263 0 L 203 101 L 120 259 L 203 404 L 203 334 L 158 259 L 203 177 L 263 75 L 356.5 259 Z"
+    fill="#cc0000"
+  />
+</svg>
