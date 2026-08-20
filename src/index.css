@@ -193,21 +193,6 @@
   stroke: currentColor;
 }
 
-/* A highlight that sweeps one lap of the line, independent of the marker.
-   --len is written from the measured path length so the dash completes
-   exactly one lap per cycle. */
-.circuit-sweep {
-  stroke-dasharray: 140 var(--len, 3000);
-  stroke-dashoffset: 0;
-  animation: circuit-pass 7s linear infinite;
-}
-
-@keyframes circuit-pass {
-  to {
-    stroke-dashoffset: calc(-1 * (var(--len, 3000) + 140));
-  }
-}
-
 /* --lap-trail and --lap-trail-steps are read by the component via
    getComputedStyle — they are its public tuning surface. */
 .lap-marker {
@@ -236,12 +221,6 @@
 
 .lap-dot {
   fill: var(--laser-hot);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .circuit-sweep {
-    animation: none;
-  }
 }
 
 /* ─── Leaflet, on this site's palette ──────────────────────────────────────
