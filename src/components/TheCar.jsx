@@ -54,7 +54,7 @@ export default function TheCar() {
           Leave the car in secure storage at the club and it is always ready trackside whenever you arrive.
         </span>
         <LiquidButton
-          onClick={() => openContact('Drive')}
+          onClick={() => openContact('Drive', 'Club · The car')}
           variant="ghost"
           size="sm"
           className="group tracking-wider"

@@ -130,13 +130,13 @@ export default function Hero({ onOpenModal }) {
 
         <div className="flex justify-between items-end w-full gap-6">
           <div className="flex items-center gap-6 flex-wrap">
-            <LiquidButton onClick={onOpenModal}>
+            <LiquidButton onClick={() => onOpenModal('Club hero')}>
               Request membership →
             </LiquidButton>
 
             <button
               type="button"
-              onClick={() => openContact('Drive')}
+              onClick={() => openContact('Drive', 'Club hero')}
               className="text-[0.72rem] tracking-widest uppercase text-ivory/60 hover:text-ivory transition-colors cursor-pointer"
             >
               Or book a day →

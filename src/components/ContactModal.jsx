@@ -17,10 +17,14 @@ import { ENQUIRY } from '../data/home';
  * which otherwise care that a modal exists.
  *
  *   const openContact = useContactModal();
- *   <button onClick={() => openContact('Stay')}>…</button>
+ *   <button onClick={() => openContact('Stay', 'Club · The house')}>…</button>
  *
- * The argument preselects the enquiry type, which is what the old
- * `/contact?type=stay` query parameter did for the page this replaces.
+ * The first argument preselects the enquiry type, which is what the old
+ * `/contact?type=stay` query parameter did for the page this replaces. The
+ * second says which call to action was pressed, and rides along to the sheet
+ * as `Opened Via`. It has to be passed at the call site because this is the
+ * only thing about a submission that only the button knows: by the time the
+ * form is open, every route into it looks identical.
  *
  * The panel is centred and printed on the premium stock from ui/PaperSurface.
  * It was a right-hand drawer, matching the membership one; both are sheets of
@@ -35,13 +39,15 @@ export function useContactModal() {
 
 export function ContactModalProvider({ children }) {
   const [type, setType] = useState('Drive');
+  const [source, setSource] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   // Remounts EnquiryForm on each open, so a half-typed message or a "received"
   // state from a previous enquiry is not still sitting there the next time.
   const [instance, setInstance] = useState(0);
 
-  const open = useCallback((nextType = 'Drive') => {
+  const open = useCallback((nextType = 'Drive', from = '') => {
     setType(ENQUIRY.toggles.includes(nextType) ? nextType : 'Drive');
+    setSource(from);
     setInstance((n) => n + 1);
     setIsOpen(true);
   }, []);
@@ -51,12 +57,18 @@ export function ContactModalProvider({ children }) {
   return (
     <ContactModalContext.Provider value={open}>
       {children}
-      <ContactModal isOpen={isOpen} type={type} instance={instance} onClose={close} />
+      <ContactModal
+        isOpen={isOpen}
+        type={type}
+        source={source}
+        instance={instance}
+        onClose={close}
+      />
     </ContactModalContext.Provider>
   );
 }
 
-function ContactModal({ isOpen, type, instance, onClose }) {
+function ContactModal({ isOpen, type, source, instance, onClose }) {
   // Escape closes it, and the page underneath does not scroll while it is
   // open: the drawer has its own scroll, and two scrollable planes at once is
   // how a reader loses their place on the page they were reading.
@@ -126,7 +138,13 @@ function ContactModal({ isOpen, type, instance, onClose }) {
                 </p>
               </div>
 
-              <EnquiryForm key={instance} initialType={type} compact tone="light" />
+              <EnquiryForm
+                key={instance}
+                initialType={type}
+                source={source}
+                compact
+                tone="light"
+              />
             </PaperSurface>
 
             {/* Outside the sheet, so it cannot scroll away with the

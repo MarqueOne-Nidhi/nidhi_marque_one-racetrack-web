@@ -21,6 +21,10 @@ import { submitToSheet } from '../lib/submitToSheet';
 export default function EnquiryForm({
   initialType = 'Drive',
   compact = false,
+  // Which call to action opened this, recorded against the submission as
+  // `Opened Via`. The form has no way to work this out for itself, so it is
+  // passed down from the button that was pressed.
+  source = '',
   // Which LiquidButton variant the submit takes. The rest of the form reads
   // the ground from CSS variables, but that component predates them.
   tone = 'dark',
@@ -51,6 +55,7 @@ export default function EnquiryForm({
       'Email Address': formData.email,
       'Phone/WhatsApp': formData.phone,
       'What you have in mind': formData.message,
+      'Opened Via': source,
     });
 
     setIsSubmitting(false);

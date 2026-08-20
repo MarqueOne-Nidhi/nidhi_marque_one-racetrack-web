@@ -63,7 +63,7 @@ export default function TheDrive() {
       </div>
 
       <LiquidButton
-        onClick={() => openContact('Drive')}
+        onClick={() => openContact('Drive', 'Club · The drive')}
         variant="ghost"
         size="sm"
         className="group tracking-wider mb-12"

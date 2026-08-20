@@ -5,7 +5,7 @@ import LiquidButton from './ui/LiquidButton';
 import PaperSurface from './ui/PaperSurface';
 import { submitToSheet } from '../lib/submitToSheet';
 
-export default function MembershipModal({ isOpen, onClose }) {
+export default function MembershipModal({ isOpen, source = '', onClose }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -34,6 +34,9 @@ export default function MembershipModal({ isOpen, onClose }) {
       'Email Address': formData.email,
       'Primary Performance Vehicle': formData.vehicle,
       'Invitation Code / Referral': formData.code,
+      // Which call to action opened this. There are five of them, four on the
+      // Club page alone, and knowing which one does the work is the point.
+      'Opened Via': source,
     });
 
     setIsSubmitting(false);

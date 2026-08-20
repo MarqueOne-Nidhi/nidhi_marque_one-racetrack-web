@@ -43,12 +43,12 @@ export default function Membership({ onOpenModal }) {
         </p>
 
         <div className="flex flex-col items-center gap-4">
-          <LiquidButton onClick={onOpenModal}>
+          <LiquidButton onClick={() => onOpenModal('Club · Membership')}>
             Request membership →
           </LiquidButton>
           <button
             type="button"
-            onClick={() => openContact('Drive')}
+            onClick={() => openContact('Drive', 'Club · Membership')}
             className="text-[0.72rem] tracking-widest uppercase text-ivory/50 hover:text-ivory transition-colors mt-2 cursor-pointer"
           >
             Not a member? Book a day →

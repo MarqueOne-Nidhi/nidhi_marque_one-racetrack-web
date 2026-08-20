@@ -34,13 +34,13 @@ export default function FinalScene({ onOpenModal }) {
           <div className="flex items-center gap-6 flex-wrap justify-end">
             <button
               type="button"
-              onClick={() => openContact('Drive')}
+              onClick={() => openContact('Drive', 'Club · Final scene')}
               className="text-[0.72rem] tracking-widest uppercase text-ivory/60 hover:text-ivory transition-colors cursor-pointer"
             >
               Book a day →
             </button>
             <LiquidButton
-              onClick={onOpenModal}
+              onClick={() => onOpenModal('Club · Final scene')}
               variant="ghost"
               size="sm"
               className="group tracking-wider"

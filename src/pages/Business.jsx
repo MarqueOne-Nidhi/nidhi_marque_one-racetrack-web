@@ -20,7 +20,7 @@ export default function Business() {
     <div className="w-full">
       <BusinessSection />
       <InConfidence />
-      <Enquiry initialType="Business" heading="Partner with us." />
+      <Enquiry initialType="Business" heading="Partner with us." source="Business page form" />
     </div>
   );
 }

@@ -147,7 +147,7 @@ export default function TheHouse() {
       </p>
 
       {/* CTA */}
-      <LiquidButton variant="secondary" onClick={() => openContact('Stay')}>
+      <LiquidButton variant="secondary" onClick={() => openContact('Stay', 'Club · The house')}>
         Book a stay →
       </LiquidButton>
     </Section>

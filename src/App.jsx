@@ -18,6 +18,16 @@ import Club from './pages/Club';
 export default function App() {
   const [activeTheme, setActiveTheme] = useState('dark');
   const [isMembershipOpen, setIsMembershipOpen] = useState(false);
+  // Which call to action opened the membership request, recorded against the
+  // submission as `Opened Via`. onOpenModal takes it as an argument rather
+  // than being bound per call site, so a bare `onClick={onOpenModal}` further
+  // down would pass a click event and land a PointerEvent in the sheet. Every
+  // call site therefore wraps it and names itself.
+  const [membershipSource, setMembershipSource] = useState('');
+  const openMembership = (from = '') => {
+    setMembershipSource(from);
+    setIsMembershipOpen(true);
+  };
   const [lightboxData, setLightboxData] = useState({ isOpen: false, src: '', caption: '' });
   
   const location = useLocation();
@@ -93,20 +103,21 @@ export default function App() {
 
         <Navbar
           activeTheme={activeTheme}
-          onOpenModal={() => setIsMembershipOpen(true)}
+          onOpenModal={() => openMembership('Navbar')}
         />
 
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/business" element={<Business />} />
           <Route path="/about" element={<About />} />
-          <Route path="/club" element={<Club onOpenModal={() => setIsMembershipOpen(true)} />} />
+          <Route path="/club" element={<Club onOpenModal={openMembership} />} />
         </Routes>
 
-        <Footer onOpenModal={() => setIsMembershipOpen(true)} />
+        <Footer onOpenModal={() => openMembership('Footer')} />
 
         <MembershipModal
           isOpen={isMembershipOpen}
+          source={membershipSource}
           onClose={() => setIsMembershipOpen(false)}
         />
 

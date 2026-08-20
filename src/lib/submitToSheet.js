@@ -30,13 +30,21 @@ export async function submitToSheet(form, fields) {
     return { ok: false, error: 'No submission endpoint is configured.' };
   }
 
+  const browser = typeof window === 'undefined' ? null : window;
+
   const payload = {
     form,
     fields: {
       ...fields,
-      // Which page the enquiry came from. Cheap to record and the one piece of
-      // context the form itself cannot ask for.
-      'Submitted From': typeof window === 'undefined' ? '' : window.location.href,
+      // The two things the form cannot ask for and no caller should have to
+      // remember. The third piece of context, `Opened Via`, is passed in by
+      // the caller instead: only the button that was pressed knows which
+      // button it was, and neither of these does.
+      'Submitted From': browser ? browser.location.href : '',
+      // Where they were before they arrived. Blank for a direct visit, a
+      // typed URL, or a link sent with a referrer policy that strips it, so
+      // an empty cell here means unknown rather than none.
+      Referrer: browser ? browser.document.referrer : '',
     },
   };
 

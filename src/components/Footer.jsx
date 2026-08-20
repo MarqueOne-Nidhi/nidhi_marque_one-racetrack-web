@@ -132,7 +132,7 @@ export default function Footer({ onOpenModal }) {
                 ) : (
                   <button
                     key={label}
-                    onClick={contact ? () => openContact() : onOpenModal}
+                    onClick={contact ? () => openContact('Drive', 'Footer') : onOpenModal}
                     className="text-[0.82rem] font-light text-ivory/75 hover:text-ivory transition-colors cursor-pointer bg-transparent border-none text-left font-sans tracking-wide"
                   >
                     {label}

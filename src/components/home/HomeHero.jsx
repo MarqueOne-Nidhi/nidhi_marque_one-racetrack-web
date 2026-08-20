@@ -161,8 +161,8 @@ export default function HomeHero() {
             </p>
 
             <div className="flex flex-wrap gap-4 items-center mt-8">
-              <LiquidButton onClick={() => openContact('Drive')}>{HERO.cta1}</LiquidButton>
-              <LiquidButton variant="ghost" onClick={() => openContact('Business')}>
+              <LiquidButton onClick={() => openContact('Drive', 'Home hero')}>{HERO.cta1}</LiquidButton>
+              <LiquidButton variant="ghost" onClick={() => openContact('Business', 'Home hero')}>
                 {HERO.cta2}
               </LiquidButton>
             </div>

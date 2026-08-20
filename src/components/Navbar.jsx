@@ -27,7 +27,7 @@ export default function Navbar({ onOpenModal, activeTheme }) {
   // that says Join has to open the membership request, not an enquiry.
   const isClubRoute = location.pathname.startsWith('/club');
   const ctaLabel = isClubRoute ? 'Join ONE.CLUB' : 'Contact';
-  const onCta = isClubRoute ? onOpenModal : () => openContact();
+  const onCta = isClubRoute ? onOpenModal : () => openContact('Drive', 'Navbar');
 
   const aimPointer = (path) => {
     const el = itemRefs.current[path];

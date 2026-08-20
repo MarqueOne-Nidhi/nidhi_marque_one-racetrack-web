@@ -9,7 +9,15 @@ import { ENQUIRY } from '../../data/home';
  * The fields and the submit live in EnquiryForm, which the contact popover
  * renders too, so the two cannot drift apart.
  */
-export default function Enquiry({ initialType = 'Drive', heading = ENQUIRY.heading, sub = ENQUIRY.sub }) {
+export default function Enquiry({
+  initialType = 'Drive',
+  heading = ENQUIRY.heading,
+  sub = ENQUIRY.sub,
+  // Recorded against the submission as `Opened Via`. This is the one form
+  // on the site that is not reached through a button, so it names the page
+  // it is standing on rather than the thing that was pressed.
+  source = 'Page form',
+}) {
   return (
     <Section
       id="enquiry"
@@ -37,7 +45,7 @@ export default function Enquiry({ initialType = 'Drive', heading = ENQUIRY.headi
         {sub}
       </motion.p>
 
-      <EnquiryForm initialType={initialType} />
+      <EnquiryForm initialType={initialType} source={source} />
     </Section>
   );
 }
