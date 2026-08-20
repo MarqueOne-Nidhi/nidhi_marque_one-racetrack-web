@@ -34,7 +34,7 @@ export const HOME_GROUPS = [
     label: 'The place',
     path: '/#definition',
     items: [
-      { label: 'What this is', path: '/#definition' },
+      { label: 'What Marque.One is', path: '/#definition' },
       { label: 'How it works', path: '/#how-it-works' },
       { label: 'The circuit', path: '/#circuit' },
       { label: 'Around the circuit', path: '/#hospitality' },

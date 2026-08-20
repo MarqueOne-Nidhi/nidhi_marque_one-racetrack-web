@@ -166,33 +166,6 @@ export default function Footer({ onOpenModal }) {
           <span className="text-[0.6rem] tracking-[0.2em] uppercase text-ivory/60 text-center">
             © 2026 Nidhi Marque.<span className="accent">One</span> Motors Pvt. Ltd. All rights reserved.
           </span>
-          <span className="text-[0.55rem] tracking-[0.15em] uppercase text-ivory/50 text-center">
-            Music: "Tranquility" by Project Ex
-          </span>
-          {/* Required by the OpenStreetMap licence and CARTO's terms. Both
-              accept the credit in a colophon rather than over the map, which
-              is why the map itself carries none. Do not remove without
-              changing tile provider. */}
-          <span className="text-[0.55rem] tracking-[0.15em] uppercase text-ivory/50 text-center">
-            Map data{' '}
-            <a
-              href="https://www.openstreetmap.org/copyright"
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              className="hover:text-ivory/80 transition-colors"
-            >
-              © OpenStreetMap
-            </a>
-            {' · '}
-            <a
-              href="https://carto.com/attributions"
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              className="hover:text-ivory/80 transition-colors"
-            >
-              © CARTO
-            </a>
-          </span>
         </div>
       </div>
 

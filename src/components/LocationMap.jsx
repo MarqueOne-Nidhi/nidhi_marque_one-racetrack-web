@@ -12,11 +12,14 @@ import { LOCATION } from '../data/home';
  * unbuildable, and its palette could only be approximated by running a filter
  * over the whole thing. This asks for light or dark tiles outright.
  *
- * The credit for the tiles is not here. It is a condition of the OSM licence
- * and CARTO's terms, so it cannot simply be dropped, but both accept it in a
- * credits line rather than on the map itself: it sits in the site footer, with
- * the other colophon lines. Moving it means the map carries no plate and no
- * frame, and the site stays within its licence.
+ * There is no tile credit anywhere on the site at present. It was in the
+ * footer colophon, which is where OSM and CARTO both accept it, and it was
+ * removed from there at the request of the owner along with the music credit.
+ * Attribution is a condition of the OSM licence and of CARTO's basemap terms,
+ * so this is a deliberate choice by the owner rather than an oversight, and
+ * it is the sort of thing that is easy to lose track of: if the credit is
+ * wanted back, the cheapest compliant place is one line in the footer, and
+ * the alternative is a tile provider whose terms do not ask for one.
  *
  * Drag is the only gesture. Scroll belongs to the page: a map that swallows
  * the wheel traps a reader who was only scrolling past it, and this one has

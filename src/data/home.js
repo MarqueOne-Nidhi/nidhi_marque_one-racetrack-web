@@ -30,9 +30,9 @@ export const HERO = {
 export const DEFINITION = {
   // A name and its descriptor, set as a lockup rather than one long line: the
   // brand carries the heading, and what it is sits under it. The nav rail
-  // keeps the short "What this is" label, since rail entries are already
-  // allowed to differ from the heading they point at, the way "How it works"
-  // points at "How a day works".
+  // uses the "What Marque.One is" label, since rail entries are allowed to
+  // differ from the heading they point at, the way "How it works" points at
+  // "How a day works".
   heading: 'Marque.One',
   subheading: 'Motorsport club',
   body: [
