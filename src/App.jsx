@@ -5,13 +5,14 @@ import GlobalAudioButton from './components/GlobalAudioButton';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import MembershipModal from './components/MembershipModal';
+import { ContactModalProvider } from './components/ContactModal';
 import LightboxModal from './components/LightboxModal';
 import ScrollToTop from './components/ScrollToTop';
 import SiteIntro from './components/SiteIntro';
 
 import Home from './pages/Home';
 import About from './pages/About';
-import Contact from './pages/Contact';
+import Business from './pages/Business';
 import Club from './pages/Club';
 
 export default function App() {
@@ -79,41 +80,43 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-dark text-ivory">
-      {/* Brand Opening Animation */}
-      <SiteIntro />
+    <ContactModalProvider>
+      <div className="relative min-h-screen bg-dark text-ivory">
+        {/* Brand Opening Animation */}
+        <SiteIntro />
 
-      <ScrollToTop />
+        <ScrollToTop />
 
-      {/* Custom cursor lens & audio — Club-only per §5 */}
-      {isClubRoute && <CursorLens />}
-      {isClubRoute && <GlobalAudioButton />}
+        {/* Custom cursor lens & audio — Club-only per §5 */}
+        {isClubRoute && <CursorLens />}
+        {isClubRoute && <GlobalAudioButton />}
 
-      <Navbar
-        activeTheme={activeTheme}
-        onOpenModal={() => setIsMembershipOpen(true)}
-      />
+        <Navbar
+          activeTheme={activeTheme}
+          onOpenModal={() => setIsMembershipOpen(true)}
+        />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/club" element={<Club onOpenModal={() => setIsMembershipOpen(true)} />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/business" element={<Business />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/club" element={<Club onOpenModal={() => setIsMembershipOpen(true)} />} />
+        </Routes>
 
-      <Footer onOpenModal={() => setIsMembershipOpen(true)} />
+        <Footer onOpenModal={() => setIsMembershipOpen(true)} />
 
-      <MembershipModal
-        isOpen={isMembershipOpen}
-        onClose={() => setIsMembershipOpen(false)}
-      />
+        <MembershipModal
+          isOpen={isMembershipOpen}
+          onClose={() => setIsMembershipOpen(false)}
+        />
 
-      <LightboxModal
-        isOpen={lightboxData.isOpen}
-        src={lightboxData.src}
-        caption={lightboxData.caption}
-        onClose={handleCloseLightbox}
-      />
-    </div>
+        <LightboxModal
+          isOpen={lightboxData.isOpen}
+          src={lightboxData.src}
+          caption={lightboxData.caption}
+          onClose={handleCloseLightbox}
+        />
+      </div>
+    </ContactModalProvider>
   );
 }

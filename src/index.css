@@ -243,3 +243,71 @@
     animation: none;
   }
 }
+
+/* ─── Leaflet, on this site's palette ──────────────────────────────────────
+   Leaflet ships a white attribution box with blue links and its own sans
+   stack. Everything here is only about making its furniture read as part of
+   the section it sits in; the tiles themselves are chosen in LocationMap. */
+.leaflet-container {
+  background: transparent;
+  font-family: inherit;
+  outline: none;
+}
+
+/* Leaflet's attribution control is switched off in LocationMap and the credit
+   is rendered in the caption instead, so its plate never sits on the map. Kept
+   hidden here as well, in case a future map is built without passing
+   attributionControl: false. */
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+/* The tooltip on the pin, in the site's own type rather than Leaflet's box. */
+.leaflet-tooltip {
+  background: #090909;
+  border: none;
+  border-radius: 2px;
+  box-shadow: none;
+  color: #f5f1e8;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+}
+
+.leaflet-tooltip-top::before {
+  border-top-color: #090909;
+}
+
+/* ─── Fields on an unknown ground ──────────────────────────────────────────
+   The enquiry form is printed on three different stocks: a dark section on
+   the Business page, warm white paper in the contact panel, and petrol board
+   in the membership one. These read --ink and --rule rather than naming a
+   colour, so the same form is legible on all of them. ::placeholder and
+   :-webkit-autofill cannot be reached from an inline style, which is the
+   reason this lives here and not on the element. */
+.paper-field {
+  background-color: transparent;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink);
+  transition: border-color 0.3s;
+}
+
+.paper-field::placeholder {
+  color: var(--ink-faint);
+}
+
+.paper-field:focus {
+  outline: none;
+  border-bottom-color: var(--ink);
+}
+
+/* Chrome paints its own pale blue over autofilled fields, which on a dark
+   board is a bright rectangle. An inset shadow the size of the field is the
+   only way to override it. */
+.paper-field:-webkit-autofill,
+.paper-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  caret-color: var(--ink);
+}

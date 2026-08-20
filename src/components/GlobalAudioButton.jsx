@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
 import AudioWaveButton from './ui/AudioWaveButton';
 
 /**
  * GlobalAudioButton
  * Plays Tranquility.mp3 soundtrack.
- * - While #hero is visible → top-right corner (92px top, 5vw right)
- * - After scrolling past hero → bottom-center of viewport
+ *
+ * Fixed in the bottom-right corner. It used to travel between two anchors,
+ * top-right over the hero and bottom-centre once past it, which is why the
+ * position was driven by x/y transforms against a measured viewport. A control
+ * that stays put needs none of that: the corner is offsets on a fixed box, so
+ * the resize listener, the hero observer and the travel easing all went with
+ * it. Bottom-centre also sat in the path of anything anchored to the foot of
+ * the page; the corner does not.
  *
  * Volume is never switched — it is always ramped exponentially, so the track
  * eases in and eases out instead of snapping on/off:
@@ -26,21 +31,9 @@ const FADE_OUT = 900; // ms
 const FADE_AWAY = 600; // ms — tab/window blur, wants to feel prompt
 const FADE_BACK = 1100; // ms — tab/window focus
 
-// Button travel between its two anchors. Driven by x/y transforms rather than
-// top/right/left, because Framer can't interpolate a number to `auto` — those
-// edges snapped instead of easing, which is what made the move feel abrupt.
-const BUTTON_SIZE = 40; // px — matches w-10 h-10 on AudioWaveButton
-const HERO_TOP = 92; // px from top while the hero is on screen
-const HERO_RIGHT_RATIO = 0.05; // 5vw from the right edge
-const DOCKED_BOTTOM = 32; // px from the bottom once docked centre-screen
-const TRAVEL_MS = 1.1; // seconds — decorative, so it can take its time
-// ease-in-out: leaves gently and arrives gently, so it drifts rather than darts
-const TRAVEL_EASE = [0.65, 0, 0.35, 1];
 
 export default function GlobalAudioButton() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [heroVisible, setHeroVisible] = useState(true);
-  const prefersReducedMotion = useReducedMotion();
   const audioRef = useRef(null);
   const ctxRef = useRef(null);
   const gainRef = useRef(null);
@@ -49,32 +42,6 @@ export default function GlobalAudioButton() {
   // What the *user* asked for, independent of whether we're currently ducked
   // for a hidden tab. Drives the button UI and the resume-on-return decision.
   const wantsAudioRef = useRef(false);
-
-  // Anchor positions are in px, so they have to be recomputed on resize
-  const [viewport, setViewport] = useState(() => ({
-    w: typeof window === 'undefined' ? 0 : window.innerWidth,
-    h: typeof window === 'undefined' ? 0 : window.innerHeight,
-  }));
-
-  useEffect(() => {
-    const onResize = () =>
-      setViewport({ w: window.innerWidth, h: window.innerHeight });
-    onResize();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  // Watch hero section visibility
-  useEffect(() => {
-    const hero = document.getElementById('hero');
-    if (!hero) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setHeroVisible(entry.isIntersecting),
-      { threshold: 0.15 }
-    );
-    observer.observe(hero);
-    return () => observer.disconnect();
-  }, []);
 
   /**
    * Build the audio graph lazily, on the first user gesture — an AudioContext
@@ -246,30 +213,14 @@ export default function GlobalAudioButton() {
         }}
       />
 
-      <div className="fixed inset-0 z-[60] pointer-events-none">
-        <motion.div
-          className="absolute top-0 left-0 pointer-events-auto"
-          style={{ willChange: 'transform' }}
-          initial={false}
-          animate={
-            heroVisible
-              ? {
-                  x: viewport.w * (1 - HERO_RIGHT_RATIO) - BUTTON_SIZE,
-                  y: HERO_TOP,
-                }
-              : {
-                  x: (viewport.w - BUTTON_SIZE) / 2,
-                  y: viewport.h - DOCKED_BOTTOM - BUTTON_SIZE,
-                }
-          }
-          transition={
-            prefersReducedMotion
-              ? { duration: 0 }
-              : { duration: TRAVEL_MS, ease: TRAVEL_EASE }
-          }
-        >
-          <AudioWaveButton isPlaying={isAudioPlaying} onClick={toggleAudio} />
-        </motion.div>
+      {/* Offsets rather than a transform, so the corner holds on any viewport
+          without measuring one. Bottom is a safe-area inset on phones with a
+          home bar, which would otherwise sit on top of it. */}
+      <div
+        className="fixed right-[5vw] z-[60]"
+        style={{ bottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
+      >
+        <AudioWaveButton isPlaying={isAudioPlaying} onClick={toggleAudio} />
       </div>
     </>
   );

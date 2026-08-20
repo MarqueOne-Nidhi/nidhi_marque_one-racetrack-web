@@ -132,7 +132,7 @@ export default function SiteIntro({ onComplete }) {
 
     offCtx.fillStyle = '#F5F1E8';
     offCtx.fillText(textMarque, textStartX, wordmarkY);
-    offCtx.fillStyle = '#FF4D4D';
+    offCtx.fillStyle = '#cc0000';
     offCtx.fillText(textDotOne, textStartX + widthMarque + 1, wordmarkY);
 
     // Draw descriptor
@@ -140,7 +140,7 @@ export default function SiteIntro({ onComplete }) {
     const descSize = Math.max(9, Math.min(rect.width * 0.012, 12));
     offCtx.font = `600 ${descSize}px Inter, sans-serif`;
     offCtx.fillStyle = 'rgba(245, 241, 232, 0.65)';
-    const descText = 'MOTORSPORT ESTATE';
+    const descText = 'MOTORSPORT CLUB';
     const descWidth = offCtx.measureText(descText).width;
     offCtx.fillText(descText, targetRect.left + (targetRect.width - descWidth) / 2, descY);
     offCtx.restore();
@@ -435,7 +435,7 @@ export default function SiteIntro({ onComplete }) {
                     delay: 0.08,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className="font-serif text-[clamp(2.2rem,5vw,3.6rem)] font-bold text-[#FF4D4D] leading-none uppercase ml-[0.02em] tracking-[0.14em]"
+                  className="font-serif text-[clamp(2.2rem,5vw,3.6rem)] font-bold text-[#cc0000] leading-none uppercase ml-[0.02em] tracking-[0.14em]"
                 >
                   .ONE
                 </motion.span>
@@ -456,7 +456,7 @@ export default function SiteIntro({ onComplete }) {
               }}
               className="block font-sans text-[0.65rem] sm:text-[0.75rem] md:text-[0.8rem] font-semibold tracking-[0.36em] uppercase text-[#F5F1E8] mt-3"
             >
-              MOTORSPORT ESTATE
+              MOTORSPORT CLUB
             </motion.span>
           </div>
         </div>

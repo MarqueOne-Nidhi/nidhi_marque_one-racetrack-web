@@ -69,7 +69,7 @@ const INK_DARK_GROUND = {
   '--ink-muted': 'rgba(245, 241, 232, 0.70)',
   '--ink-faint': 'rgba(245, 241, 232, 0.50)',
   '--rule': 'rgba(245, 241, 232, 0.12)',
-  '--accent': '#FF4D4D',
+  '--accent': '#cc0000',
 };
 
 const INK_LIGHT_GROUND = {

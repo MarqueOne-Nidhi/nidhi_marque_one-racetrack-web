@@ -2,26 +2,41 @@
 // Edit words here, not in fourteen components.
 
 export const HERO = {
-  // The badge is the first line the eye meets, above the headline, so it
-  // carries the positioning: what this is and where. The name is already on
-  // the logo two inches away; saying it twice answered nothing.
-  badge: 'MOTORSPORT ESTATE · TWO HOURS FROM BENGALURU',
+  // There is no badge above the headline any more. It read MOTORSPORT ESTATE
+  // · TWO HOURS FROM BENGALURU, which the sub already says in full a line
+  // below it. The eye met the same positioning twice before reaching a
+  // single new fact.
+  //
   // Ogilvy: five times as many people read the headline as read anything
-  // else, so it has to carry the promise, not just the mood. The triad is
-  // the deck's own rhythm ("No traffic, no oncoming, no speed limit"), so
-  // this reads as brand voice while stating proof, benefit and barrier.
-  // Previous slogan, kept here in case it is wanted back:
+  // else, so it has to carry the promise, not just the mood. Two clauses now
+  // rather than three: proof, then the benefit that makes it personal.
+  //
+  // The <br> is a hard break, not a suggestion: the two clauses are set one
+  // per line at every width, rather than being left to wrap wherever the
+  // viewport happens to put them. BlurFadeText turns the token into a
+  // full-width flex spacer; see the note there for why a real <br> will not
+  // do the job.
+  //
+  // Earlier versions, kept in case one is wanted back:
+  //   'An FIA-graded circuit. Your car.'
+  //   'An FIA-graded circuit. Your own car. No licence required.'
   //   '219 acres. Drive all of it, or none of it.'
-  headline: 'An FIA-graded circuit. Your own car. No licence required.',
-  sub: 'A motorsport estate two hours from Bengaluru. Open to drivers, to groups, to business — and to anyone who simply wants the weekend.',
+  headline: 'FIA graded circuit. <br> Your car.',
+  sub: 'A motorsport club two hours from Bengaluru. Open to drivers, to groups, to business, and to anyone who simply wants the weekend.',
   cta1: 'Plan a visit',
   cta2: 'For business',
 };
 
 export const DEFINITION = {
-  heading: 'What this is',
+  // A name and its descriptor, set as a lockup rather than one long line: the
+  // brand carries the heading, and what it is sits under it. The nav rail
+  // keeps the short "What this is" label, since rail entries are already
+  // allowed to differ from the heading they point at, the way "How it works"
+  // points at "How a day works".
+  heading: 'Marque.One',
+  subheading: 'Motorsport club',
   body: [
-    'A motorsport estate across 219 acres — a circuit, a drag strip, an off-road course, a skid pan, a wet handling track, and a clubhouse built to make a weekend of it.',
+    'A motorsport club across 219 acres: a circuit, a drag strip, an off-road course, a skid pan, a wet handling track, and a clubhouse built to make a weekend of it.',
     'You do not need a membership, a licence or a fast car. You need a day, and something you want to do with it.',
     'Members hold standing access. Everyone else books.',
   ],
@@ -44,7 +59,7 @@ export const HOW_IT_WORKS = {
     {
       n: '02',
       title: 'We confirm a date',
-      body: 'The date, the price and what to bring — in writing, before you commit.',
+      body: 'The date, the price and what to bring. In writing, before you commit.',
     },
     {
       n: '03',
@@ -58,8 +73,8 @@ export const HOW_IT_WORKS = {
 export const CIRCUIT_COPY = {
   heading: 'The circuit',
   body: [
-    'The road climbs and drops twenty-five metres either side of level. It goes blind over crests. It is never flat and never twice the same.',
-    'The drag strip runs on the circuit itself — eight hundred metres from a standing start, timed to the thousandth.',
+    'The track climbs and drops twenty-five metres either side of level. It goes blind over crests. It is never flat and never twice the same.',
+    'The drag strip runs on the circuit itself: eight hundred metres from a standing start, timed to the thousandth.',
     'An FIA-graded circuit, with race-grade asphalt run-off, permanent barriers and full trackside electronics. Designed by Driven International.',
   ],
 };
@@ -130,12 +145,12 @@ export const ON_YOUR_OWN = {
     {
       title: 'Instruction',
       anchor: 'instruction',
-      body: 'A motorsport academy on the estate. Most drivers who arrive wanting to be quick discover they were never taught how — a fault that answers to a weekend.',
+      body: 'A motorsport academy at the club. Most drivers who arrive wanting to be quick discover they were never taught how. A fault that answers to a weekend.',
     },
     {
       title: 'Storage',
       anchor: 'storage',
-      body: 'Secure, temperature-controlled storage on site. The car waits where the road is.',
+      body: 'Secure, temperature-controlled storage on site. The car waits where the track is.',
     },
   ],
   callout: 'No membership required. No competition licence. No race car.',
@@ -147,12 +162,12 @@ export const WITH_PEOPLE = {
     {
       title: 'The weekend',
       anchor: 'the-weekend',
-      body: 'Arrive Friday. Drive Saturday and Sunday. Sleep twenty minutes from the car rather than two hours.',
+      body: 'Arrive Friday. Drive Saturday and Sunday. Sleep minutes from the car on site.',
     },
     {
       title: 'Your group, your circuit',
       anchor: 'your-group',
-      body: 'Take the road for the day with the garages, the marshals and the gate closed behind you. Car clubs, birthdays, reunions, anything that improves for being held somewhere nobody else can reach.',
+      body: 'Take the circuit for the day with the garages, the marshals and the gate closed behind you. Car clubs, birthdays, reunions, anything that improves for being held somewhere nobody else can reach.',
     },
     {
       title: 'Not everyone drives',
@@ -162,59 +177,18 @@ export const WITH_PEOPLE = {
   ],
 };
 
-export const BUSINESS = {
-  heading: 'Business',
-  intro: 'The estate takes bookings, hosts events, and builds programmes with partners who bring their own idea of what to do with a circuit.',
-  blocks: [
-    {
-      title: 'Events and race meetings',
-      anchor: 'events-and-race-meetings',
-      body: 'The circuit, the paddock and the estate for a competitive weekend, a series round, a club meeting or a format that does not exist yet. Bring the event. We have the ground.',
-    },
-    {
-      title: 'Launches and press',
-      anchor: 'launches-and-press',
-      body: 'Elevation, surface and straight enough to make the numbers real, with garages and hospitality for a journalist group. Marque One works in partnership with Autocar India.',
-    },
-    {
-      title: 'Corporate and dealer programmes',
-      anchor: 'corporate-programmes',
-      body: 'Customer drive days, product launches, dealer training and incentive weekends, with rooms and dining on site so the programme need not break for the night.',
-    },
-    {
-      title: 'Team testing',
-      anchor: 'team-testing',
-      body: 'Full circuit access, pit lane and garages, on an FIA-graded layout.',
-    },
-  ],
-};
-
-export const IN_CONFIDENCE = {
-  heading: 'In confidence',
-  blocks: [
-    {
-      title: 'Sole use',
-      body: 'The estate takes one client at a time. For the duration of the booking there is no second party on site, and no public gate to close because there is not one.',
-    },
-    {
-      title: 'What is available',
-      body: 'Circuit, strip, off-road and rock-crawl course, skid pan and wet handling track, in any combination a programme requires. Trackside timing and electronics throughout. Pit garages, workshop space and race control.',
-    },
-    {
-      title: 'Distance',
-      body: 'Two hours from an international airport, and far enough from everything else that nobody arrives by accident.',
-    },
-  ],
-};
+// BUSINESS and IN_CONFIDENCE used to live here. They now render on the
+// Business page, not the home page, so their copy moved with them to
+// data/business.js, one file per page it appears on.
 
 export const HOSPITALITY = {
-  heading: 'Around the road',
-  intro: 'Forty rooms above the circuit, each one different, each one facing either the mountains or the road.',
+  heading: 'Around the circuit',
+  intro: 'Forty rooms above the circuit, each one different, each one facing either the mountains or the track.',
   blocks: [
     {
       title: 'The clubhouse',
       anchor: 'the-clubhouse',
-      body: 'A pool that looks out over the circuit. Dining that runs long. Somewhere to sit and watch the road without standing beside it.',
+      body: 'A pool that looks out over the circuit. Dining that runs long. Somewhere to sit and watch the track without standing beside it.',
     },
     {
       title: 'Spa and gym',
@@ -229,11 +203,42 @@ export const HOSPITALITY = {
   ],
 };
 
+// Cards for the hospitality carousel. One per image in the hospitality set,
+// in the order they turn. The line is what the right-hand column reads out
+// while that card is at the front, so each one has to stand alone.
+export const HOSPITALITY_CARDS = [
+  {
+    key: 'hospitalityClubhouse',
+    title: 'The clubhouse',
+    line: 'It stands above the circuit, so the track can be watched without standing beside it.',
+  },
+  {
+    key: 'hospitalityPool',
+    title: 'The pool',
+    line: 'It looks out over the lap. Nobody has to go near the track to use it.',
+  },
+  {
+    key: 'hospitalityDining',
+    title: 'Dining',
+    line: 'A table that runs long, for people who came to stay rather than to leave at six.',
+  },
+  {
+    key: 'hospitalitySpa',
+    title: 'Spa and gym',
+    line: 'Treatment rooms, and a gym that keeps its hours whether or not anyone is driving.',
+  },
+  {
+    key: 'hospitalityWeekend',
+    title: 'The rooms',
+    line: 'Each one different. Each one faces either the mountains or the track.',
+  },
+];
+
 export const SAFETY = {
   heading: 'Safety',
   body: [
     'Race-grade asphalt run-off, permanent barriers and marshalled sessions throughout.',
-    'A medical facility operates on the estate, with trained staff on site whenever the circuit is live.',
+    'A medical facility operates at the club, with trained staff on site whenever the circuit is live.',
   ],
 };
 
@@ -243,6 +248,16 @@ export const LOCATION = {
     'Two hours by road from Kempegowda International Airport, Bengaluru.',
     'Far enough from a city to be quiet. Close enough to reach before noon.',
   ],
+  // The pin, from the place's own Google listing. `share` is the short link
+  // as issued, which is what a visitor should be handed for directions;
+  // lat/lng are what the embedded frame is centred on.
+  map: {
+    label: 'Marque.One Race Track',
+    lat: 13.8753038,
+    lng: 78.1197967,
+    zoom: 14,
+    share: 'https://maps.app.goo.gl/cJGz9f4hzapxQpeZ9',
+  },
 };
 
 export const FAQ = {
@@ -253,12 +268,12 @@ export const FAQ = {
         { q: 'Do I need to be a member?', a: 'No. Members hold standing access; everyone else books a day.' },
         { q: 'Do I need racing experience?', a: 'No. Most people who drive here have never been on a circuit.' },
         { q: 'Do I need a competition licence?', a: 'No. A valid driving licence is enough.' },
-        { q: 'What car do I need?', a: 'A road-legal car in sound mechanical condition. Not a fast one — a normal car driven properly teaches more than a fast car driven badly.' },
-        { q: 'Is instruction available?', a: 'There is a motorsport academy on the estate.' },
+        { q: 'What car do I need?', a: 'A road-legal car in sound mechanical condition. Not a fast one. A normal car driven properly teaches more than a fast car driven badly.' },
+        { q: 'Is instruction available?', a: 'There is a motorsport academy at the club.' },
         { q: 'How long is the circuit?', a: '3.2 kilometres, with an 800-metre drag strip integrated into the lap and ±25 metres of elevation.' },
         { q: 'What else is there besides the circuit?', a: 'An off-road and rock-crawl course, a skid pan, a kick plate and a wet handling track. The drag strip runs on the circuit itself.' },
         { q: 'Can I keep my car here?', a: 'Secure, temperature-controlled storage is on site.' },
-        { q: 'Is there medical cover?', a: 'A medical facility operates on the estate, staffed whenever the circuit is live.' },
+        { q: 'Is there medical cover?', a: 'A medical facility operates at the club, staffed whenever the circuit is live.' },
       ],
     },
     {
@@ -266,18 +281,18 @@ export const FAQ = {
       items: [
         { q: 'Can I come without driving?', a: 'Yes. Rooms, pool, spa, gym and dining make a full weekend on their own.' },
         { q: 'Can I bring people who don\'t drive?', a: 'Yes. It is a complete visit for them, not a wait.' },
-        { q: 'Can I stay overnight?', a: 'Forty rooms on the estate, above the circuit.' },
+        { q: 'Can I stay overnight?', a: 'Forty rooms at the club, above the circuit.' },
         { q: 'Is there somewhere to watch?', a: 'Viewing from the clubhouse and the pool, across the circuit.' },
       ],
     },
     {
       title: 'Business',
       items: [
-        { q: 'Can we hold an event here?', a: 'Yes — race meetings, launches, corporate programmes and formats built with us.' },
-        { q: 'Can the site be taken privately?', a: 'Yes. Sole use means one client on the estate for the duration.' },
+        { q: 'Can we hold an event here?', a: 'Yes: race meetings, launches, corporate programmes and formats built with us.' },
+        { q: 'Can the site be taken privately?', a: 'Yes. Sole use means one client at the club for the duration.' },
         { q: 'What is available for testing?', a: 'Circuit, strip, off-road course, skid pan and wet handling track, with trackside timing and electronics.' },
         { q: 'Are there garages and workshop space?', a: 'Pit garages, workshop space and race control are on site.' },
-        { q: 'Can a programme run across several days?', a: 'Rooms and dining are on the estate.' },
+        { q: 'Can a programme run across several days?', a: 'Rooms and dining are at the club.' },
       ],
     },
   ],

@@ -28,7 +28,7 @@ export default function TheClub() {
         />
 
         <p className="font-sans text-[0.9rem] font-light leading-[1.7] ink-muted max-w-measure mt-6">
-          Arrive without booking. For members the garages, the rooms and the road are open on any day the circuit is live.
+          Arrive without booking. For members the garages, the rooms and the track are open on any day the circuit is live.
         </p>
       </div>
 

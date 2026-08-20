@@ -5,8 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LiquidButton from './ui/LiquidButton';
 import NavSubPanel from './NavSubPanel';
 import { NAV_LINKS } from '../data/navigation';
+import { useContactModal } from './ContactModal';
 
 export default function Navbar({ onOpenModal, activeTheme }) {
+  const openContact = useContactModal();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
@@ -18,6 +20,14 @@ export default function Navbar({ onOpenModal, activeTheme }) {
   const closeTimer = useRef(null);
   const itemRefs = useRef({});
   const location = useLocation();
+
+  // The club has its own way in. Offering a general Contact button on the one
+  // page whose whole purpose is membership sends the visitor to the wrong
+  // form, so on /club the CTA changes label and target together: a button
+  // that says Join has to open the membership request, not an enquiry.
+  const isClubRoute = location.pathname.startsWith('/club');
+  const ctaLabel = isClubRoute ? 'Join ONE.CLUB' : 'Contact';
+  const onCta = isClubRoute ? onOpenModal : () => openContact();
 
   const aimPointer = (path) => {
     const el = itemRefs.current[path];
@@ -82,10 +92,13 @@ export default function Navbar({ onOpenModal, activeTheme }) {
 
   const textColorClass = isLight ? 'text-dark' : 'text-ivory';
 
+  // No dividing line under the bar. The tint and the blur already separate it
+  // from whatever is scrolling underneath, and the hairline was the only hard
+  // edge on an otherwise edgeless bar, so it read as a seam across the page.
   const navBgClass = isScrolled
     ? isLight
-      ? 'bg-[#F5F1E8]/85 backdrop-blur-md shadow-sm'
-      : 'bg-[#090909]/85 backdrop-blur-md border-b border-white/10'
+      ? 'bg-[#F5F1E8]/85 backdrop-blur-md'
+      : 'bg-[#090909]/85 backdrop-blur-md'
     : 'bg-transparent';
 
   return (
@@ -103,7 +116,7 @@ export default function Navbar({ onOpenModal, activeTheme }) {
         >
           <img
             src={logoSrc}
-            alt="Marque One Motorsport Estate"
+            alt="Marque One Motorsport Club"
             className="h-7 w-auto transition-all duration-300"
           />
         </Link>
@@ -157,11 +170,12 @@ export default function Navbar({ onOpenModal, activeTheme }) {
 
         {/* Desktop CTA — Contact page link */}
         <div className="hidden md:flex items-center">
-          <Link to="/contact">
-            <LiquidButton variant={isLight ? 'secondary' : 'default'}>
-              Contact
-            </LiquidButton>
-          </Link>
+          <LiquidButton
+            variant={isLight ? 'secondary' : 'default'}
+            onClick={onCta}
+          >
+            {ctaLabel}
+          </LiquidButton>
         </div>
 
         {/* Mobile Hamburger */}
@@ -257,11 +271,17 @@ export default function Navbar({ onOpenModal, activeTheme }) {
             </div>
 
             <div className="flex flex-col gap-4 border-t border-ivory/10 pt-6">
-              <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>
-                <LiquidButton variant="default" size="lg" className="w-full">
-                  Contact →
-                </LiquidButton>
-              </Link>
+              <LiquidButton
+                variant="default"
+                size="lg"
+                className="w-full"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  onCta();
+                }}
+              >
+                {ctaLabel} →
+              </LiquidButton>
               <span className="text-[0.65rem] tracking-widest uppercase text-ivory/40 text-center">
                 BENGALURU · INDIA
               </span>

@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import BlurFadeText from '../ui/BlurFadeText';
 import LiquidButton from '../ui/LiquidButton';
 import { surfaceProps } from '../ui/Section';
 import { HERO } from '../../data/home';
+import { useContactModal } from '../ContactModal';
 
 const HERO_VIDEOS = [
   { src: '/assets/videos/home_lambo.mp4', label: 'Circuit Drive' },
@@ -12,6 +12,7 @@ const HERO_VIDEOS = [
 ];
 
 export default function HomeHero() {
+  const openContact = useContactModal();
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [loadedVideos, setLoadedVideos] = useState({});
   const [durations, setDurations] = useState({});
@@ -151,10 +152,6 @@ export default function HomeHero() {
       <div className="relative z-20 w-full px-gutter pb-section-xs flex flex-col justify-end">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
           <div className="max-w-measure-xl">
-            <span className="block text-[0.7rem] tracking-ultra uppercase text-ivory/60 mb-3">
-              {HERO.badge}
-            </span>
-
             <h1 className="font-serif text-[clamp(2.6rem,6.5vw,6.5rem)] font-light leading-[0.95] tracking-tight text-ivory">
               <BlurFadeText text={HERO.headline} as="span" />
             </h1>
@@ -164,12 +161,10 @@ export default function HomeHero() {
             </p>
 
             <div className="flex flex-wrap gap-4 items-center mt-8">
-              <Link to="/contact">
-                <LiquidButton>{HERO.cta1}</LiquidButton>
-              </Link>
-              <Link to="/contact?type=business">
-                <LiquidButton variant="ghost">{HERO.cta2}</LiquidButton>
-              </Link>
+              <LiquidButton onClick={() => openContact('Drive')}>{HERO.cta1}</LiquidButton>
+              <LiquidButton variant="ghost" onClick={() => openContact('Business')}>
+                {HERO.cta2}
+              </LiquidButton>
             </div>
           </div>
 
@@ -208,7 +203,7 @@ export default function HomeHero() {
               })}
             </div>
             <span className="text-[0.65rem] font-mono tracking-wider text-ivory/60 transition-all duration-300">
-              0{activeVideoIndex + 1} / 0{HERO_VIDEOS.length} — {HERO_VIDEOS[activeVideoIndex].label}
+              0{activeVideoIndex + 1} / 0{HERO_VIDEOS.length} · {HERO_VIDEOS[activeVideoIndex].label}
             </span>
           </div>
         </div>

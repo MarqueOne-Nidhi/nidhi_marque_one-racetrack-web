@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import LiquidButton from './ui/LiquidButton';
-import { GOOGLE_SHEET_SCRIPT_URL } from '../config';
+import PaperSurface from './ui/PaperSurface';
+import { submitToSheet } from '../lib/submitToSheet';
 
 export default function MembershipModal({ isOpen, onClose }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -20,31 +22,26 @@ export default function MembershipModal({ isOpen, onClose }) {
     if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim()) return;
 
     setIsSubmitting(true);
+    setError('');
 
-    try {
-      if (GOOGLE_SHEET_SCRIPT_URL) {
-        const bodyData = new URLSearchParams();
-        bodyData.append('Timestamp', new Date().toLocaleString());
-        bodyData.append('Full Name', formData.name);
-        bodyData.append('Phone/WhatsApp', formData.phone);
-        bodyData.append('Email Address', formData.email);
-        bodyData.append('Primary Performance Vehicle (Optional)', formData.vehicle || 'N/A');
-        bodyData.append('Invitation Code/Referral (Optional)', formData.code || 'N/A');
+    // Keys are the sheet's column headings, and must match the membership
+    // list in docs/apps-script/Code.gs exactly. This used to build its own
+    // request here rather than going through lib/submitToSheet, which is how
+    // it ended up posting different header names than the shared helper.
+    const result = await submitToSheet('membership', {
+      'Full Name': formData.name,
+      'Phone/WhatsApp': formData.phone,
+      'Email Address': formData.email,
+      'Primary Performance Vehicle': formData.vehicle,
+      'Invitation Code / Referral': formData.code,
+    });
 
-        await fetch(GOOGLE_SHEET_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: bodyData.toString(),
-        });
-      }
-    } catch (err) {
-      console.warn('Google Sheet submission warning:', err);
-    } finally {
-      setIsSubmitting(false);
+    setIsSubmitting(false);
+
+    if (result.ok) {
       setIsSubmitted(true);
+    } else {
+      setError(`${result.error} Please try again, or email club.one@marque.one.`);
     }
   };
 
@@ -53,6 +50,7 @@ export default function MembershipModal({ isOpen, onClose }) {
     setTimeout(() => {
       setIsSubmitted(false);
       setIsSubmitting(false);
+      setError('');
       setFormData({ name: '', phone: '', email: '', vehicle: '', code: '' });
     }, 400);
   };
@@ -60,42 +58,46 @@ export default function MembershipModal({ isOpen, onClose }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[1000] flex justify-end">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-8">
           {/* Overlay Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="absolute inset-0 bg-dark/80 backdrop-blur-md"
+            className="absolute inset-0 bg-dark/88 backdrop-blur-md"
           />
 
-          {/* Slide-over Drawer */}
+          {/* Centred sheet, on the luxury board. The club's request is the
+              heavier stock of the two on purpose: same construction as the
+              contact panel, a grade up in weight and colour. */}
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="relative w-full max-w-drawer h-full bg-dark-secondary border-l border-ivory/10 p-[8vw] md:p-[3rem] flex flex-col justify-between overflow-y-auto z-10"
+            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.99 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 260 }}
+            className="relative z-10 w-full max-w-[560px] max-h-[92svh]"
           >
-            <button
-              onClick={handleClose}
-              className="absolute top-6 right-6 text-ivory/60 hover:text-ivory p-2 transition-colors cursor-pointer"
-              aria-label="Close modal"
+            <PaperSurface
+              variant="luxury"
+              className="rounded-[2px] max-h-[92svh]"
+              innerClassName="max-h-[92svh] overflow-y-auto scrollbar-hide p-[8vw] sm:p-12"
+              style={{
+                boxShadow:
+                  '0 48px 90px -36px rgba(0,0,0,0.95), 0 2px 10px -4px rgba(0,0,0,0.7)',
+              }}
             >
-              <X size={24} />
-            </button>
 
             {!isSubmitted ? (
-              <div className="my-auto">
+              <div>
                 <div className="mb-8">
-                  <span className="text-[0.65rem] tracking-widest uppercase text-ivory/50 block mb-2">
-                    MARQUE <span className="accent">ONE</span> MOTORSPORTS CLUB
+                  <span className="text-[0.72rem] tracking-[0.24em] ink-faint block mb-3">
+                    <span style={{ color: '#cc0000' }}>ONE</span>.CLUB
                   </span>
-                  <h3 className="font-serif text-[2.4rem] font-light text-ivory leading-none">
+                  <h3 className="font-serif text-[clamp(2rem,5vw,2.8rem)] font-light leading-[1.02] tracking-tight">
                     Request Membership
                   </h3>
-                  <p className="text-[0.65rem] tracking-widest uppercase text-ivory/50 mt-2">
+                  <p className="text-[0.65rem] tracking-widest uppercase ink-faint mt-2">
                     Private Motorsport Sanctuary · Bengaluru
                   </p>
                 </div>
@@ -103,7 +105,7 @@ export default function MembershipModal({ isOpen, onClose }) {
                 <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                   {/* Full Name (Required) */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.65rem] tracking-widest uppercase text-ivory/60">
+                    <label className="text-[0.65rem] tracking-widest uppercase ink-faint">
                       Full Name
                     </label>
                     <input
@@ -112,13 +114,13 @@ export default function MembershipModal({ isOpen, onClose }) {
                       placeholder="Your name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="bg-transparent border-b border-ivory/20 py-2 text-ivory text-[0.95rem] focus:outline-none focus:border-ivory transition-colors placeholder:text-ivory/20"
+                      className="paper-field py-2 text-[0.95rem]"
                     />
                   </div>
 
                   {/* Phone / WhatsApp (Required) */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.65rem] tracking-widest uppercase text-ivory/60">
+                    <label className="text-[0.65rem] tracking-widest uppercase ink-faint">
                       Phone / WhatsApp
                     </label>
                     <input
@@ -127,13 +129,13 @@ export default function MembershipModal({ isOpen, onClose }) {
                       placeholder="+91 90000 00000"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="bg-transparent border-b border-ivory/20 py-2 text-ivory text-[0.95rem] focus:outline-none focus:border-ivory transition-colors placeholder:text-ivory/20"
+                      className="paper-field py-2 text-[0.95rem]"
                     />
                   </div>
 
                   {/* Email Address (Required) */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.65rem] tracking-widest uppercase text-ivory/60">
+                    <label className="text-[0.65rem] tracking-widest uppercase ink-faint">
                       Email Address
                     </label>
                     <input
@@ -142,13 +144,13 @@ export default function MembershipModal({ isOpen, onClose }) {
                       placeholder="your@email.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="bg-transparent border-b border-ivory/20 py-2 text-ivory text-[0.95rem] focus:outline-none focus:border-ivory transition-colors placeholder:text-ivory/20"
+                      className="paper-field py-2 text-[0.95rem]"
                     />
                   </div>
 
                   {/* Primary Performance Vehicle (Optional) */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.65rem] tracking-widest uppercase text-ivory/60">
+                    <label className="text-[0.65rem] tracking-widest uppercase ink-faint">
                       Primary Performance Vehicle (Optional)
                     </label>
                     <input
@@ -156,13 +158,13 @@ export default function MembershipModal({ isOpen, onClose }) {
                       placeholder="Make, Model & Year"
                       value={formData.vehicle}
                       onChange={(e) => setFormData({ ...formData, vehicle: e.target.value })}
-                      className="bg-transparent border-b border-ivory/20 py-2 text-ivory text-[0.95rem] focus:outline-none focus:border-ivory transition-colors placeholder:text-ivory/20"
+                      className="paper-field py-2 text-[0.95rem]"
                     />
                   </div>
 
                   {/* Invitation Code / Referral (Optional) */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[0.65rem] tracking-widest uppercase text-ivory/60">
+                    <label className="text-[0.65rem] tracking-widest uppercase ink-faint">
                       Invitation Code / Referral (Optional)
                     </label>
                     <input
@@ -170,9 +172,19 @@ export default function MembershipModal({ isOpen, onClose }) {
                       placeholder="Member referral code"
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                      className="bg-transparent border-b border-ivory/20 py-2 text-ivory text-[0.95rem] focus:outline-none focus:border-ivory transition-colors placeholder:text-ivory/20"
+                      className="paper-field py-2 text-[0.95rem]"
                     />
                   </div>
+
+                  {error && (
+                    <p
+                      role="alert"
+                      className="text-[0.78rem] leading-relaxed"
+                      style={{ color: 'var(--accent)' }}
+                    >
+                      {error}
+                    </p>
+                  )}
 
                   <div className="mt-4">
                     <LiquidButton
@@ -194,24 +206,36 @@ export default function MembershipModal({ isOpen, onClose }) {
                 </form>
               </div>
             ) : (
-              <div className="my-auto flex flex-col items-start gap-4">
-                <span className="text-[0.65rem] tracking-widest uppercase text-ivory/50">
+              <div className="flex flex-col items-start gap-4">
+                <span className="text-[0.65rem] tracking-widest uppercase ink-faint">
                   RECEIVED
                 </span>
-                <h3 className="font-serif text-[2.4rem] font-light text-ivory leading-none">
+                <h3 className="font-serif text-[clamp(2rem,5vw,2.8rem)] font-light leading-[1.02] tracking-tight">
                   Invitation Requested
                 </h3>
-                <p className="text-[0.7rem] tracking-widest uppercase text-ivory/60 leading-relaxed">
-                  The Marque <span className="accent">One</span> team will review your application and reach out privately.
+                <p className="text-[0.7rem] tracking-widest uppercase ink-muted leading-relaxed">
+                  The Marque.<span className="accent">One</span> team will review your application and reach out privately.
                 </p>
                 <button
                   onClick={handleClose}
-                  className="mt-6 text-[0.8rem] tracking-widest uppercase text-ivory hover:opacity-70 transition-opacity cursor-pointer"
+                  className="mt-6 text-[0.8rem] tracking-widest uppercase hover:opacity-70 transition-opacity cursor-pointer bg-transparent border-none"
                 >
                   Close →
                 </button>
               </div>
             )}
+            </PaperSurface>
+
+            {/* Outside the sheet, so it cannot scroll away with the
+                content, and above it in the stack. */}
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 z-20 p-2 bg-transparent border-none cursor-pointer opacity-50 hover:opacity-100 transition-opacity"
+              style={{ color: '#F2EDE3' }}
+              aria-label="Close modal"
+            >
+              <X size={22} />
+            </button>
           </motion.div>
         </div>
       )}
