@@ -175,8 +175,20 @@ export default function Footer({ onOpenModal }) {
         className="relative z-10 w-full flex items-end justify-center select-none pointer-events-none pb-2"
         style={{ height: 'clamp(60px, 12vw, 140px)' }}
       >
+        {/* MARQUE was ivory/5 against ONE at 20 per cent of #cc0000, and the
+            two halves of one word were not reading as one word.
+
+            Matching them is not a matter of equalising luminance: the two are
+            already almost equal there, 1.078:1 against the ground versus
+            1.097:1, because luminance weights red at 0.21 and so barely counts
+            what makes the red half visible. Nearly all of ONE's presence is
+            chroma. Matching perceived difference from the ground instead, by
+            dE2000, asks for 27 per cent, but that treats a colour difference
+            and a lightness difference as interchangeable, which they are not
+            for large type read at a glance. 15 sits between the two measures
+            and is where the halves actually match by eye. */}
         <span
-          className="font-serif font-semibold text-ivory/5 leading-none whitespace-nowrap uppercase tracking-[0.02em] block"
+          className="font-serif font-semibold text-ivory/15 leading-none whitespace-nowrap uppercase tracking-[0.02em] block"
           style={{ fontSize: 'clamp(3.5rem, 11vw, 10rem)', lineHeight: 1 }}
         >
           MARQUE.<span style={{ color: '#cc0000' }} className="opacity-20">ONE</span>
