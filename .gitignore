@@ -23,3 +23,6 @@ Thumbs.db
 
 # Third-party skills repo (cloned separately, not project source)
 /skills/
+
+.vercel
+.env*
