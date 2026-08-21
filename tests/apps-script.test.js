@@ -282,12 +282,21 @@ describe('selfTest, which answers the phone question without a deployment', () =
 });
 
 describe('the email theme', () => {
-  it('prints a membership request on the club petrol board', () => {
+  it('prints a membership request on black', () => {
     const env = loadAppsScript(makeBook());
     env.post('membership', MEMBERSHIP);
 
-    expect(env.sent[0].htmlBody).toContain('#141D22');
+    expect(env.sent[0].htmlBody).toContain('#090909');
     expect(env.sent[0].htmlBody).toContain('Membership request');
+  });
+
+  it('uses the blacks the site already uses, not invented ones', () => {
+    // #090909 is the dark surface in ui/Section.jsx, #F5F1E8 the ivory on it.
+    const { api } = loadAppsScript(makeBook());
+
+    expect(api.THEMES.black.card).toBe('#090909');
+    expect(api.THEMES.black.ink).toBe('#F5F1E8');
+    expect(api.THEMES.black.page).toBe('#000000');
   });
 
   it('leaves an enquiry on the ivory stock', () => {
@@ -296,12 +305,12 @@ describe('the email theme', () => {
 
     expect(env.sent[0].htmlBody).toContain('#faf8f3');
     expect(env.sent[0].htmlBody).toContain('New enquiry');
-    expect(env.sent[0].htmlBody).not.toContain('#141D22');
+    expect(env.sent[0].htmlBody).not.toContain('#090909');
   });
 
-  it('lifts the accent on the dark stock, where the brand red fails contrast', () => {
-    // #cc0000 measures 2.90:1 on #141D22, under the 4.5:1 small text needs;
-    // #FF4D4D reads 5.23:1. The same substitution ui/Section.jsx makes.
+  it('lifts the accent on black, where the brand red fails contrast', () => {
+    // #cc0000 measures 3.38:1 on #090909, under the 4.5:1 small text needs;
+    // #FF4D4D reads 6.09:1. The same substitution ui/Section.jsx makes.
     const env = loadAppsScript(makeBook());
     env.post('membership', MEMBERSHIP);
 

@@ -69,15 +69,23 @@ var TIMESTAMP_FORMAT = 'd mmm yyyy, h:mm am/pm';
  * How each notification is printed.
  *
  * The two forms are not the same thing and the site has never treated them as
- * one: an enquiry is answered on the premium cotton rag, and the club's
- * membership request on the luxury petrol board. See ui/PaperSurface. The mail
- * now follows the same split, so a membership request is recognisable before
- * it is read.
+ * one, so the mail does not either: an enquiry arrives on the ivory ground the
+ * site reads on, and a membership request on black. A club request is then
+ * recognisable in a list before it is opened.
  *
- * The accent lifts from #cc0000 to #FF4D4D on the dark stock. That is not a
- * taste decision: the brand red measures 2.90:1 on #141D22, well under the
- * 4.5:1 small text needs, where #FF4D4D reads 5.23:1. It is the same
- * substitution ui/Section.jsx makes on every dark ground.
+ * The blacks are the site's own rather than invented. #090909 is the dark
+ * surface in ui/Section.jsx and #F5F1E8 is the ivory it carries, so the mail
+ * and the page are the same two colours.
+ *
+ * The accent lifts from #cc0000 to #FF4D4D on black, which is not a taste
+ * decision: the brand red measures 3.38:1 on #090909, under the 4.5:1 that
+ * small text needs, where #FF4D4D reads 6.09:1. It is the same substitution
+ * ui/Section.jsx makes on every dark ground, for the same reason.
+ *
+ * The membership form itself is printed on the petrol board in ui/PaperSurface
+ * rather than on black. The mail diverging from it is deliberate, and was
+ * asked for: a form is looked at once, in place, while a notification is
+ * picked out of an inbox.
  */
 var THEMES = {
   ivory: {
@@ -88,12 +96,14 @@ var THEMES = {
     label: '#8a8578',
     link: '#cc0000',
   },
-  petrol: {
-    page: '#0d1317',
-    card: '#141D22',
+  black: {
+    page: '#000000',
+    card: '#090909',
     rule: '#FF4D4D',
-    ink: '#F2EDE3',
-    label: '#8B979E',
+    ink: '#F5F1E8',
+    // The same warm grey the ivory theme uses for its labels, which reads
+    // 5.41:1 here. The two themes are one design, not two.
+    label: '#8A8578',
     link: '#FF4D4D',
   },
 };
@@ -103,7 +113,7 @@ var THEMES = {
 // not update the live URL; only Deploy, Manage deployments, New version does,
 // and the difference is invisible until a submission behaves oddly. Bump this
 // whenever the file changes. scripts/live-submission.mjs compares it.
-var VERSION = '2026-08-21d';
+var VERSION = '2026-08-21e';
 
 /**
  * One entry per form. `headers` is the column order for that tab, `subject`
@@ -130,7 +140,7 @@ var FORMS = {
       'Referrer',
     ],
     replyTo: 'Email Address',
-    theme: 'petrol',
+    theme: 'black',
     heading: 'Membership request',
     // Membership has only one intent, so the name carries the subject.
     subject: function (fields) {
