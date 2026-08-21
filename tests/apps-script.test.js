@@ -584,6 +584,171 @@ describe('the notification', () => {
   });
 });
 
+describe('the receipt sent to whoever filled the form in', () => {
+  const receipt = (env) => env.sent.find((m) => m.to !== env.api.NOTIFY);
+  const internal = (env) => env.sent.find((m) => m.to === env.api.NOTIFY);
+
+  it('sends two messages, one each way', () => {
+    const env = loadAppsScript(makeBook());
+    const result = env.post('enquiry', ENQUIRY);
+
+    expect(env.sent).toHaveLength(2);
+    expect(result.notified).toBe(true);
+    expect(result.confirmed).toBe(true);
+  });
+
+  it('goes to the address on the form, not to us', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('enquiry', ENQUIRY);
+
+    expect(receipt(env).to).toBe('ravi@example.com');
+    expect(internal(env).to).toBe(env.api.NOTIFY);
+  });
+
+  it('replies to us, so answering the receipt reaches a person', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('enquiry', ENQUIRY);
+
+    expect(receipt(env).replyTo).toBe(env.api.NOTIFY);
+  });
+
+  it('says what happens next, which is the part they do not know', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('enquiry', ENQUIRY);
+
+    expect(receipt(env).body).toMatch(/reach out shortly/);
+    expect(receipt(env).htmlBody).toMatch(/reach out shortly/);
+  });
+
+  it('uses the same words the site showed on screen', () => {
+    // EnquiryForm and MembershipModal both say this on submission. A receipt
+    // that reads differently looks like it came from somewhere else.
+    const { api } = loadAppsScript(makeBook());
+
+    expect(api.FORMS.enquiry.confirm.lead).toMatch(
+      /review your enquiry and reach out shortly/
+    );
+    expect(api.FORMS.membership.confirm.lead).toMatch(
+      /review your application and reach out privately/
+    );
+  });
+
+  it('never echoes the columns that exist for us rather than for them', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('enquiry', ENQUIRY);
+    const mail = receipt(env);
+
+    for (const column of env.api.INTERNAL_COLUMNS) {
+      expect(mail.body, column).not.toContain(column);
+      expect(mail.htmlBody, column).not.toContain(column);
+    }
+    // And the values behind them, not only the headings.
+    expect(mail.body).not.toContain('Club · The house');
+    expect(mail.htmlBody).not.toContain('Club · The house');
+  });
+
+  it('still tells us all of it', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('enquiry', ENQUIRY);
+
+    expect(internal(env).body).toContain('Club · The house');
+    expect(internal(env).body).toContain('https://marque.one/club');
+  });
+
+  it('does show them what they actually typed', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('enquiry', ENQUIRY);
+    const mail = receipt(env);
+
+    expect(mail.body).toContain('Ravi Menon');
+    expect(mail.body).toContain('A weekend in October.');
+    expect(mail.body).toContain('+91 98888 88888');
+  });
+
+  it('is set on the same stock as the notification for that form', () => {
+    const black = loadAppsScript(makeBook());
+    black.post('membership', MEMBERSHIP);
+    expect(receipt(black).htmlBody).toContain('#090909');
+
+    const ivory = loadAppsScript(makeBook());
+    ivory.post('enquiry', ENQUIRY);
+    expect(receipt(ivory).htmlBody).toContain('#faf8f3');
+  });
+
+  it('names the club rather than the tab in its subject', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('membership', MEMBERSHIP);
+
+    expect(receipt(env).subject).toBe('One.club · We have your request');
+    expect(receipt(env).subject).not.toContain('One.Club-Membership');
+  });
+
+  it('sends nothing when the address is unusable', () => {
+    const env = loadAppsScript(makeBook());
+    const result = env.post('enquiry', { ...ENQUIRY, 'Email Address': 'not an address' });
+
+    expect(env.sent).toHaveLength(1);
+    expect(env.sent[0].to).toBe(env.api.NOTIFY);
+    expect(result.confirmed).toBe(false);
+    expect(result.ok).toBe(true);
+  });
+
+  it('sends nothing when no address was given at all', () => {
+    const env = loadAppsScript(makeBook());
+    const result = env.post('enquiry', { 'Full Name': 'Ravi Menon' });
+
+    expect(env.sent).toHaveLength(1);
+    expect(result.confirmed).toBe(false);
+  });
+
+  it('can be switched off without touching the notification', () => {
+    const env = loadAppsScript(makeBook());
+    env.api.SEND_CONFIRMATION = false;
+    const result = env.post('enquiry', ENQUIRY);
+
+    expect(env.sent).toHaveLength(1);
+    expect(env.sent[0].to).toBe(env.api.NOTIFY);
+    expect(result.notified).toBe(true);
+    expect(result.confirmed).toBe(null);
+  });
+
+  it('escapes what they typed on the way back to them', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('enquiry', { ...ENQUIRY, 'Full Name': '<script>alert(1)</script>' });
+
+    expect(receipt(env).htmlBody).toContain('&lt;script&gt;');
+    expect(receipt(env).htmlBody).not.toContain('<script>alert');
+  });
+
+  it('keeps the row when the receipt cannot be sent', () => {
+    const book = makeBook();
+    let calls = 0;
+    const env = loadAppsScript(book, (options) => {
+      calls++;
+      if (options.to !== 'project.motorclub@marque.one') throw new Error('bounced');
+    });
+    const result = env.post('enquiry', ENQUIRY);
+
+    expect(result.ok).toBe(true);
+    expect(result.notified).toBe(true);
+    expect(result.confirmed).toBe(false);
+    expect(book.tab('Enquiry').records()).toHaveLength(1);
+    expect(env.errors.join('\n')).toMatch(/Confirmation to sender failed/);
+  });
+
+  it('still sends the receipt when the notification is what failed', () => {
+    // They fail for different reasons, so one must not take the other down.
+    const env = loadAppsScript(makeBook(), (options) => {
+      if (options.to === 'project.motorclub@marque.one') throw new Error('no scope');
+    });
+    const result = env.post('enquiry', ENQUIRY);
+
+    expect(result.notified).toBe(false);
+    expect(result.confirmed).toBe(true);
+    expect(env.sent.some((m) => m.to === 'ravi@example.com')).toBe(true);
+  });
+});
+
 describe('operating it by hand', () => {
   it('answers a GET without leaking the notify address', () => {
     const env = loadAppsScript(makeBook());

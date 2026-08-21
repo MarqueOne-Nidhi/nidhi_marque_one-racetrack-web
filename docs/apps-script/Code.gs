@@ -57,6 +57,18 @@
 // only the sheet. Consumer Gmail allows 100 of these a day.
 var NOTIFY = 'project.motorclub@marque.one';
 
+// Whether the person who submitted also gets an acknowledgement. This doubles
+// the mail sent per submission, which is worth knowing against the daily quota:
+// 100 on consumer Gmail, 1500 on Workspace. Set to false for the sheet and the
+// internal notification only.
+var SEND_CONFIRMATION = true;
+
+// Columns that exist for us rather than for them. They are recorded and they
+// are useful, but a visitor being told which button they pressed and which
+// page referred them reads as surveillance rather than a receipt, so the
+// confirmation leaves them out. See confirmToSender.
+var INTERNAL_COLUMNS = ['Opened Via', 'Submitted From', 'Referrer'];
+
 // Leave '' when this script lives inside the spreadsheet, which is the normal
 // case and how the install above describes it. Set it to a spreadsheet ID
 // only if the script is standalone, because getActiveSpreadsheet() returns
@@ -113,7 +125,7 @@ var THEMES = {
 // not update the live URL; only Deploy, Manage deployments, New version does,
 // and the difference is invisible until a submission behaves oddly. Bump this
 // whenever the file changes. scripts/live-submission.mjs compares it.
-var VERSION = '2026-08-21e';
+var VERSION = '2026-08-21f';
 
 /**
  * One entry per form. `headers` is the column order for that tab, `subject`
@@ -142,6 +154,16 @@ var FORMS = {
     replyTo: 'Email Address',
     theme: 'black',
     heading: 'Membership request',
+    // The words the applicant has just read on screen, in MembershipModal.
+    // A receipt that says something different from the page it came from
+    // reads as though it came from somewhere else.
+    confirm: {
+      subject: 'One.club · We have your request',
+      heading: 'Invitation requested',
+      lead:
+        'Thank you. The Marque.One team will review your application and ' +
+        'reach out privately.',
+    },
     // Membership has only one intent, so the name carries the subject.
     subject: function (fields) {
       return 'One.club · Membership request from ' + who(fields);
@@ -164,6 +186,14 @@ var FORMS = {
     replyTo: 'Email Address',
     theme: 'ivory',
     heading: 'New enquiry',
+    // As shown by EnquiryForm on submission, for the same reason.
+    confirm: {
+      subject: 'Marque One · We have your enquiry',
+      heading: 'Enquiry received',
+      lead:
+        'Thank you. The Marque.One team will review your enquiry and reach ' +
+        'out shortly.',
+    },
     // The enquiry form asks what they want before it asks who they are, so
     // the subject leads with that: Drive, Stay, Business and so on. It is the
     // one thing worth knowing before the mail is opened.
@@ -270,11 +300,25 @@ function doPost(e) {
       }
     }
 
+    // Sent in its own try, so a receipt that cannot go out never costs us the
+    // notification. They fail independently because they fail for different
+    // reasons: the address for this one comes from the form.
+    var confirmed = null;
+    if (SEND_CONFIRMATION) {
+      try {
+        confirmed = confirmToSender(config, headers, row, fields);
+      } catch (confirmErr) {
+        confirmed = false;
+        console.error('Confirmation to sender failed: ' + confirmErr);
+      }
+    }
+
     return json({
       ok: true,
       sheet: config.sheet,
       row: target.sheet.getLastRow(),
       notified: notified,
+      confirmed: confirmed,
     });
   } catch (err) {
     console.error(err);
@@ -488,6 +532,79 @@ function setColumnFormats(sheet, headers) {
  * which is whoever is already reading the mail.
  */
 function notify(config, headers, row, fields) {
+  var printed = printFields(config, headers, row, []);
+
+  MailApp.sendEmail(
+    withReplyTo(
+      {
+        to: NOTIFY,
+        subject: config.subject(fields),
+        body: printed.lines.join('\n'),
+        htmlBody: mailShell(
+          THEMES[config.theme] || THEMES.ivory,
+          config.heading,
+          '',
+          printed.cells,
+          'Recorded in the ' +
+            escapeHtml(config.sheet) +
+            ' tab. Replying to this message replies to the sender.'
+        ),
+        name: 'Marque One',
+      },
+      String(fields[config.replyTo] || '')
+    )
+  );
+}
+
+/**
+ * The receipt, to whoever filled the form in.
+ *
+ * Two differences from the notification, both deliberate. It leads with what
+ * happens next, because that is the only thing the sender does not already
+ * know; and it leaves out INTERNAL_COLUMNS, because being told which button
+ * you pressed and which page referred you reads as surveillance rather than a
+ * receipt.
+ *
+ * It replies to NOTIFY, so answering the receipt reaches a person.
+ *
+ * Worth knowing: any form that sends a confirmation can be pointed at a third
+ * party by someone typing an address that is not theirs. The content is fixed
+ * apart from what was submitted, and it is escaped, so the worst case is one
+ * unwanted message rather than anything carried inside it.
+ */
+function confirmToSender(config, headers, row, fields) {
+  var to = String(fields[config.replyTo] || '').trim();
+  if (!isAddress(to)) return false;
+
+  var printed = printFields(config, headers, row, INTERNAL_COLUMNS);
+  var copy = config.confirm;
+
+  MailApp.sendEmail(
+    withReplyTo(
+      {
+        to: to,
+        subject: copy.subject,
+        body: copy.lead + '\n\n' + printed.lines.join('\n'),
+        htmlBody: mailShell(
+          THEMES[config.theme] || THEMES.ivory,
+          copy.heading,
+          copy.lead,
+          printed.cells,
+          'This is a copy of what you sent us. Replying to it reaches us.'
+        ),
+        name: 'Marque One',
+      },
+      NOTIFY
+    )
+  );
+  return true;
+}
+
+/**
+ * One row of the submission per line, as plain text and as table rows.
+ * `skip` names columns to leave out entirely.
+ */
+function printFields(config, headers, row, skip) {
   var theme = THEMES[config.theme] || THEMES.ivory;
   var zone = Session.getScriptTimeZone();
   var lines = [];
@@ -496,6 +613,7 @@ function notify(config, headers, row, fields) {
   for (var i = 0; i < headers.length; i++) {
     var value = row[i];
     if (value === '' || value === null || value === undefined) continue;
+    if (skip.indexOf(headers[i]) !== -1) continue;
 
     var text =
       value instanceof Date
@@ -526,7 +644,21 @@ function notify(config, headers, row, fields) {
       '</tr>';
   }
 
-  var html =
+  return { lines: lines, cells: cells };
+}
+
+/** The printed sheet both messages are set on. */
+function mailShell(theme, heading, intro, cells, foot) {
+  var lead = intro
+    ? '<p style="margin:14px 0 0;max-width:52ch;font:400 14px/1.6 ' +
+      'Helvetica,Arial,sans-serif;color:' +
+      theme.ink +
+      ';">' +
+      escapeHtml(intro) +
+      '</p>'
+    : '';
+
+  return (
     '<div style="background:' +
     theme.page +
     ';padding:28px 0;">' +
@@ -545,8 +677,10 @@ function notify(config, headers, row, fields) {
     '<h1 style="margin:12px 0 0;font:300 27px/1.15 Georgia,serif;color:' +
     theme.ink +
     ';">' +
-    escapeHtml(config.heading) +
-    '</h1></div>' +
+    escapeHtml(heading) +
+    '</h1>' +
+    lead +
+    '</div>' +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" ' +
     'style="width:100%;border-collapse:collapse;margin:18px 0 0;"><tbody>' +
     cells +
@@ -554,39 +688,39 @@ function notify(config, headers, row, fields) {
     '<div style="padding:22px 30px 26px;font:400 11px/1.5 Helvetica,Arial,sans-serif;' +
     'color:' +
     theme.label +
-    ';">Recorded in the ' +
-    escapeHtml(config.sheet) +
-    ' tab. Replying to this message replies to the sender.</div>' +
-    '</div></div>';
+    ';">' +
+    foot +
+    '</div>' +
+    '</div></div>'
+  );
+}
 
-  var options = {
-    to: NOTIFY,
-    subject: config.subject(fields),
-    body: lines.join('\n'),
-    htmlBody: html,
-    name: 'Marque One',
-  };
+function isAddress(value) {
+  return /^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(String(value).trim());
+}
 
-  var replyTo = String(fields[config.replyTo] || '').trim();
-  // An invalid address makes sendEmail throw, which would turn a typo in one
-  // field into a failed notification for the whole submission.
-  if (/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(replyTo)) options.replyTo = replyTo;
-
-  MailApp.sendEmail(options);
+/**
+ * An invalid address makes sendEmail throw, which would turn a typo in one
+ * field into a failed message. Better to send without a reply-to than not to
+ * send.
+ */
+function withReplyTo(options, address) {
+  if (isAddress(address)) options.replyTo = String(address).trim();
+  return options;
 }
 
 /**
  * Addresses and URLs get an anchor of our own.
  *
  * Left as bare text, mail clients link them themselves and colour them their
- * own default blue, which is unreadable on the club's dark stock: #1155cc
- * measures under 2:1 on #141D22. Supplying the anchor keeps the colour ours.
+ * own default blue, which is unreadable on the club's black stock: #1155cc
+ * measures under 2:1 on #090909. Supplying the anchor keeps the colour ours.
  */
 function linkify(text, theme) {
   var safe = escapeHtml(text);
   var style = 'color:' + theme.link + ';';
 
-  if (/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(text)) {
+  if (isAddress(text)) {
     return '<a href="mailto:' + safe + '" style="' + style + '">' + safe + '</a>';
   }
   if (/^https?:\/\//.test(text)) {

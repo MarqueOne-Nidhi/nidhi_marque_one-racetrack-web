@@ -183,8 +183,17 @@ async function main() {
     console.log(`      wrote row ${parsed.row} of ${parsed.sheet}`);
     console.log(`      phone sent as "${fields['Phone/WhatsApp']}"`);
 
+    if (parsed.confirmed === true) {
+      console.log(`      receipt sent to ${fields['Email Address']}`);
+    } else if (parsed.confirmed === false) {
+      console.log('      NO receipt to the sender. Either the address was');
+      console.log('      unusable or the send threw; check Executions.');
+    } else if (parsed.confirmed === null) {
+      console.log('      receipts switched off, SEND_CONFIRMATION is false');
+    }
+
     if (parsed.notified === true) {
-      console.log('      emailed');
+      console.log('      notified us');
     } else if (parsed.notified === false) {
       failures++;
       console.log('      NOT emailed. The row is safe, the notification threw.');
