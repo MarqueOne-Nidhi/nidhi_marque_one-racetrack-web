@@ -1,74 +1,226 @@
-import React from 'react';
-import { Section } from '../ui/Section';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Section } from '../ui/Section';
+import CardCylinder, { SCROLL_VH_PER_CARD, scrollTrackHeight } from '../ui/CardCylinder';
+import CylinderMarkers from '../ui/CylinderMarkers';
 import { BUSINESS } from '../../data/business';
 
+/**
+ * Business: the same cylinder the home page uses for hospitality, turned by
+ * the page scroll instead of by itself.
+ *
+ * The section pins for a few screens and the scroll through it is the
+ * position on the cylinder, so a reader who simply keeps scrolling is shown
+ * all four programmes and then let go. Nothing has to be dragged or clicked
+ * to see the whole set, which is the difference from the home page: there the
+ * cylinder turns on its own beside a section a reader may pass in a second.
+ *
+ * ── The anchors ──────────────────────────────────────────────────────────
+ * The navbar deep-links to each programme, /business#team-testing and the
+ * rest, and those anchors used to be the four blocks of a grid. With the grid
+ * gone they are zero-sized marks placed down the scroll track instead, one
+ * every SCROLL_VH_PER_CARD, which is exactly the spacing the cylinder reads.
+ * So the browser's own anchor scrolling lands on the scroll position where
+ * that card is at the front, with no scripting involved.
+ *
+ * ── When it does not pin ─────────────────────────────────────────────────
+ * Under reduced motion, and on a narrow screen, the blocks are laid out as a
+ * plain grid and nothing pins. Both cases are the same judgement: pinning a
+ * section for three screens is only reasonable if something is moving to
+ * justify it. Under reduced motion nothing may, and on a phone the stage is
+ * small, the copy stacks under it, and mobile browser chrome resizing the
+ * viewport mid-pin is a well-known way to make sticky sections lurch. The
+ * grid also keeps the anchors working without any of the arithmetic above.
+ */
+
+const CARDS = BUSINESS.blocks.map((block) => ({
+  key: block.anchor,
+  title: block.title,
+  line: block.body,
+  src: block.image,
+  alt: block.alt,
+}));
+
+function useMatches(query) {
+  const [matches, setMatches] = useState(() =>
+    typeof window === 'undefined' ? false : window.matchMedia(query).matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const update = () => setMatches(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, [query]);
+
+  return matches;
+}
+
 export default function Business() {
+  const [active, setActive] = useState(0);
+  const track = useRef(null);
+  const cylinder = useRef(null);
+
+  const reduced = useMatches('(prefers-reduced-motion: reduce)');
+  const narrow = useMatches('(max-width: 767px)');
+  const asGrid = reduced || narrow;
+
+  const activeCard = CARDS[active];
+
   return (
-    // Opens the Business page, so it takes the interior-page header shape:
-    // light ground, and explicit top padding to clear the fixed navbar
-    // rather than relying on the 14vh rhythm to do it.
-    <Section
-      id="business"
-      surface="light"
-      rhythm="none"
-      className="pt-[120px] pb-section"
-    >
-      <span className="block text-[0.7rem] tracking-ultra uppercase ink-faint mb-3">
-        MARQUE.<span style={{ color: '#cc0000' }}>ONE</span> FOR BUSINESS
-      </span>
-
-      <motion.h1
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="font-serif text-[clamp(2.8rem,6vw,6rem)] font-light leading-[0.95] tracking-tight mb-6"
+    <>
+      {/* Opens the Business page, so it takes the interior-page header shape:
+          light ground, and explicit top padding to clear the fixed navbar
+          rather than relying on the 14vh rhythm to do it. */}
+      <Section
+        id="business"
+        surface="light"
+        rhythm="none"
+        className="pt-[120px] pb-section-xs"
       >
-        {BUSINESS.heading}
-      </motion.h1>
+        <span className="block text-[0.7rem] tracking-ultra uppercase ink-faint mb-3">
+          MARQUE.<span style={{ color: '#cc0000' }}>ONE</span> FOR BUSINESS
+        </span>
 
-      <motion.p
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.1 }}
-        className="font-sans text-[clamp(0.95rem,1.4vw,1.15rem)] font-light ink-muted max-w-measure leading-relaxed mb-16"
-      >
-        {BUSINESS.intro}
-      </motion.p>
+        <motion.h1
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="font-serif text-[clamp(2.8rem,6vw,6rem)] font-light leading-[0.95] tracking-tight mb-6"
+        >
+          {BUSINESS.heading}
+        </motion.h1>
 
-      {/* 4 sub-blocks */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14">
-        {BUSINESS.blocks.map((block, i) => (
-          <motion.div
-            key={block.title}
-            id={block.anchor}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: i * 0.1 }}
-            className="group flex flex-col"
-          >
-            {block.image && (
-              <div className="relative w-full aspect-[16/9] rounded-sm overflow-hidden mb-6 bg-black/5">
-                <img
-                  src={block.image}
-                  alt={block.alt || block.title}
-                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                  loading="lazy"
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="font-sans text-[clamp(0.95rem,1.4vw,1.15rem)] font-light ink-muted max-w-measure leading-relaxed"
+        >
+          {BUSINESS.intro}
+        </motion.p>
+      </Section>
+
+      {asGrid ? (
+        <Section surface="dark" measure="frame">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14">
+            {BUSINESS.blocks.map((block, i) => (
+              <motion.div
+                key={block.title}
+                id={block.anchor}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: i * 0.1 }}
+                className="group flex flex-col"
+              >
+                {block.image && (
+                  <div className="relative w-full aspect-[16/9] rounded-sm overflow-hidden mb-6 bg-black/20">
+                    <img
+                      src={block.image}
+                      alt={block.alt || block.title}
+                      className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <div className="border-t rule pt-5 flex-1 flex flex-col">
+                  <h2 className="font-serif text-[clamp(1.3rem,1.8vw,1.6rem)] font-light mb-3">
+                    {block.title}
+                  </h2>
+                  <p className="font-sans text-[0.88rem] font-light leading-[1.7] ink-muted">
+                    {block.body}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </Section>
+      ) : (
+        // The tall element. Its height is the only thing that decides how long
+        // the pin lasts, and CardCylinder reads the same constant to turn a
+        // position inside it into a position on the cylinder, so the two
+        // cannot disagree about how long the section is.
+        <div ref={track} className="relative" style={{ height: scrollTrackHeight(CARDS.length) }}>
+          {/* One mark per card, at the scroll offset where that card is at the
+              front. Zero-sized and invisible; they exist to be jumped to. */}
+          {CARDS.map((card, i) => (
+            <span
+              key={card.key}
+              id={card.key}
+              aria-hidden="true"
+              className="absolute left-0 w-px h-px"
+              style={{ top: `${i * SCROLL_VH_PER_CARD}vh` }}
+            />
+          ))}
+
+          <div className="sticky top-0 h-[100svh] overflow-hidden">
+            <Section
+              surface="dark"
+              rhythm="none"
+              className="h-full flex items-center py-[clamp(4rem,10vh,8rem)]"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-col items-center w-full">
+                <CardCylinder
+                  ref={cylinder}
+                  cards={CARDS}
+                  drive="scroll"
+                  scrollRef={track}
+                  onActiveChange={setActive}
+                  className="md:col-span-6 h-[clamp(320px,46vh,460px)] md:h-[clamp(440px,68vh,760px)]"
                 />
+
+                <div className="md:col-span-5 md:col-start-8">
+                  {/* The header has scrolled away by the time the pin starts,
+                      so the section says what it is on its own. The wording is
+                      the navbar's own label for this group. */}
+                  <span className="block text-[0.7rem] tracking-ultra uppercase ink-faint mb-3">
+                    WHAT WE HOST
+                  </span>
+
+                  {/* Held to a fixed height so the longest block cannot shove
+                      the row of markers down and up as the cylinder turns. */}
+                  <div className="min-h-[188px]">
+                    <span className="block text-[0.6rem] tracking-ultra uppercase ink-faint mb-3">
+                      {String(active + 1).padStart(2, '0')} /{' '}
+                      {String(CARDS.length).padStart(2, '0')}
+                    </span>
+                    {/* Keyed on the active card, so a change remounts these
+                        two and replays their entry rather than swapping the
+                        text in place. */}
+                    <motion.h2
+                      key={`t-${active}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                      className="font-serif text-[clamp(1.6rem,2.6vw,2.4rem)] font-light leading-[1.1] mb-3"
+                    >
+                      {activeCard.title}
+                    </motion.h2>
+                    <motion.p
+                      key={`l-${active}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+                      className="font-sans text-[0.88rem] font-light leading-[1.7] ink-muted max-w-measure-sm"
+                    >
+                      {activeCard.line}
+                    </motion.p>
+                  </div>
+
+                  <CylinderMarkers
+                    cards={CARDS}
+                    active={active}
+                    onSelect={(i) => cylinder.current?.goTo(i)}
+                    className="mt-8"
+                  />
+                </div>
               </div>
-            )}
-            <div className="border-t rule pt-5 flex-1 flex flex-col">
-              <h3 className="font-serif text-[clamp(1.3rem,1.8vw,1.6rem)] font-light mb-3">
-                {block.title}
-              </h3>
-              <p className="font-sans text-[0.88rem] font-light leading-[1.7] ink-muted">
-                {block.body}
-              </p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </Section>
+            </Section>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
