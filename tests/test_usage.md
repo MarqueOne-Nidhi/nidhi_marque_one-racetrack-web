@@ -48,15 +48,12 @@ ok    enquiry
       emailed
 ```
 
-Four things to read in that:
+Three things to read in that:
 
 - **`"ok": true`** with a row number means the row is on disk.
 - **`notified`**. `false` means the row is safe but the email threw, which is
   almost always the mail scope not having been granted. Run `sendTestEmail`
   from the Apps Script editor and approve the prompt.
-- **`confirmed`**. Every submission also sends a receipt to whoever filled
-  the form in. `false` means the address was unusable or the send threw;
-  `null` means receipts are switched off with `SEND_CONFIRMATION`.
 - **`version`**, printed in the header. Saving in the editor does *not* update
   the live URL; only Deploy, Manage deployments, pencil, New version does, and
   until now that difference was invisible until a submission behaved oddly.
