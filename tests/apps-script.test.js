@@ -5,6 +5,7 @@ import {
   makeSheet,
   headersFor,
   runnableFunctions,
+  receiveLikeSheets,
 } from './helpers/appsScript.js';
 
 /**
@@ -179,15 +180,22 @@ describe('writing a row', () => {
 });
 
 describe('phone numbers, which Sheets will parse if allowed to', () => {
+  // The fake sheet models Sheets' parsing rather than storing strings
+  // verbatim, so these fail if the escape is removed. See receiveLikeSheets.
+
+  it('states the bug as a fact about Sheets, not about this code', () => {
+    expect(receiveLikeSheets('+91 90000 00000')).toBe('#ERROR!');
+    expect(receiveLikeSheets('09876543210')).toBe(9876543210);
+    expect(receiveLikeSheets("'+91 90000 00000")).toBe('+91 90000 00000');
+  });
+
   it('stores a number beginning with + as the string it was typed as', () => {
-    // A leading plus is a formula in Sheets. This landed in the live tab as
-    // #ERROR! until the cell was formatted as text before the write.
     const book = makeBook();
     loadAppsScript(book).post('membership', MEMBERSHIP);
-    const tab = book.tab('One.Club-Membership');
 
-    expect(tab.records()[0]['Phone/WhatsApp']).toBe('+91 90000 00000');
-    expect(tab._formats['2:3']).toBe('@');
+    expect(book.tab('One.Club-Membership').records()[0]['Phone/WhatsApp']).toBe(
+      '+91 90000 00000'
+    );
   });
 
   it('does not turn a number with a leading zero into a number', () => {
@@ -199,16 +207,139 @@ describe('phone numbers, which Sheets will parse if allowed to', () => {
     expect(value).toBe('09876543210');
   });
 
-  it('formats every cell but the timestamp as text', () => {
+  it('escapes only what would be misread, and leaves prose alone', () => {
+    const { api } = loadAppsScript(makeBook());
+
+    expect(api.asLiteral('+91 90000 00000')).toBe("'+91 90000 00000");
+    expect(api.asLiteral('09876543210')).toBe("'09876543210");
+    expect(api.asLiteral('=SUM(A1)')).toBe("'=SUM(A1)");
+    expect(api.asLiteral('-5')).toBe("'-5");
+
+    // An escape leaking onto ordinary text would mark up a whole sheet.
+    expect(api.asLiteral('Ravi Menon')).toBe('Ravi Menon');
+    expect(api.asLiteral('ravi@example.com')).toBe('ravi@example.com');
+    expect(api.asLiteral('https://marque.one/club')).toBe('https://marque.one/club');
+    expect(api.asLiteral('')).toBe('');
+  });
+
+  it('never leaves the escape visible in a cell', () => {
+    const book = makeBook();
+    loadAppsScript(book).post('membership', MEMBERSHIP);
+    const row = book.tab('One.Club-Membership').records()[0];
+
+    for (const value of Object.values(row)) {
+      if (typeof value === 'string') {
+        expect(value.charAt(0), JSON.stringify(value)).not.toBe("'");
+      }
+    }
+  });
+
+  it('shows the number in the email without the escape', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('membership', MEMBERSHIP);
+
+    expect(env.sent[0].body).toContain('+91 90000 00000');
+    expect(env.sent[0].body).not.toContain("'+91");
+    expect(env.sent[0].htmlBody).not.toContain("'+91");
+  });
+
+  it('keeps the timestamp a date rather than escaping it into text', () => {
     const book = makeBook();
     loadAppsScript(book).post('enquiry', ENQUIRY);
     const tab = book.tab('Enquiry');
-    const width = tab.headers().length;
 
-    expect(tab._formats['2:1']).toMatch(/mmm/);
-    for (let c = 2; c <= width; c++) {
-      expect(tab._formats[`2:${c}`], `column ${c}`).toBe('@');
-    }
+    expect(tab._cells[1][0].constructor.name).toBe('Date');
+    expect(tab._formats['2:1']).toBe('d mmm yyyy, h:mm am/pm');
+  });
+});
+
+describe('selfTest, which answers the phone question without a deployment', () => {
+  it('passes against the current code', () => {
+    const env = loadAppsScript(makeBook());
+    env.api.selfTest();
+
+    expect(env.logs.join('\n')).toMatch(/stored exactly as sent/);
+    expect(env.logs.join('\n')).not.toMatch(/FAIL/);
+  });
+
+  it('puts the tab back exactly as it found it', () => {
+    const book = makeBook();
+    const env = loadAppsScript(book);
+    env.post('enquiry', ENQUIRY);
+    const before = JSON.stringify(book.tab('Enquiry')._cells);
+
+    env.api.selfTest();
+
+    expect(JSON.stringify(book.tab('Enquiry')._cells)).toBe(before);
+  });
+
+  it('leaves nothing behind even on a tab it had to create', () => {
+    const book = makeBook();
+    loadAppsScript(book).api.selfTest();
+
+    expect(book.tab('Enquiry').records()).toHaveLength(0);
+  });
+});
+
+describe('the email theme', () => {
+  it('prints a membership request on the club petrol board', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('membership', MEMBERSHIP);
+
+    expect(env.sent[0].htmlBody).toContain('#141D22');
+    expect(env.sent[0].htmlBody).toContain('Membership request');
+  });
+
+  it('leaves an enquiry on the ivory stock', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('enquiry', ENQUIRY);
+
+    expect(env.sent[0].htmlBody).toContain('#faf8f3');
+    expect(env.sent[0].htmlBody).toContain('New enquiry');
+    expect(env.sent[0].htmlBody).not.toContain('#141D22');
+  });
+
+  it('lifts the accent on the dark stock, where the brand red fails contrast', () => {
+    // #cc0000 measures 2.90:1 on #141D22, under the 4.5:1 small text needs;
+    // #FF4D4D reads 5.23:1. The same substitution ui/Section.jsx makes.
+    const env = loadAppsScript(makeBook());
+    env.post('membership', MEMBERSHIP);
+
+    expect(env.sent[0].htmlBody).toContain('#FF4D4D');
+    expect(env.sent[0].htmlBody).not.toContain('#cc0000');
+  });
+
+  it('gives links a colour rather than letting the client pick blue', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('membership', MEMBERSHIP);
+
+    expect(env.sent[0].htmlBody).toContain('href="mailto:priya@example.com"');
+    expect(env.sent[0].htmlBody).toContain('href="https://marque.one/club"');
+    expect(env.sent[0].htmlBody).toMatch(/<a href="mailto:[^"]+" style="color:#FF4D4D;"/);
+  });
+
+  it('does not turn ordinary answers into links', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('membership', MEMBERSHIP);
+
+    expect(env.sent[0].htmlBody).not.toContain('mailto:Priya');
+  });
+
+  it('still escapes what the visitor typed, links or not', () => {
+    const env = loadAppsScript(makeBook());
+    env.post('enquiry', { ...ENQUIRY, 'Full Name': '<script>alert(1)</script>' });
+
+    expect(env.sent[0].htmlBody).toContain('&lt;script&gt;');
+    expect(env.sent[0].htmlBody).not.toContain('<script>alert');
+  });
+
+  it('takes the heading and the stock from the form, rather than guessing', () => {
+    const { api } = loadAppsScript(makeBook());
+
+    expect(api.FORMS.membership.heading).toBe('Membership request');
+    expect(api.FORMS.enquiry.heading).toBe('New enquiry');
+    expect(api.THEMES[api.FORMS.membership.theme]).toBeTruthy();
+    expect(api.THEMES[api.FORMS.enquiry.theme]).toBeTruthy();
   });
 });
 

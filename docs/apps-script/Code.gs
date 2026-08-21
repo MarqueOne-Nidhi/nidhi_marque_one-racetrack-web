@@ -26,10 +26,16 @@
  *    submission will write its row and then fail on the email, which is what
  *    a "notified": false in the reply means.
  *
- * 3. Run `repairSheets` once, then `setUpSheets`. See repairSheets for what
+ * 3. Run `selfTest`. It writes three rows, reads them straight back and
+ *    deletes them, and reports whether a phone number survived the trip. Do
+ *    this before deploying: it runs against the saved file, so if it fails
+ *    here the deployment would have failed the same way, and it is the only
+ *    way to see what actually landed in a cell.
+ *
+ * 4. Run `repairSheets` once, then `setUpSheets`. See repairSheets for what
  *    it does and why it is needed.
  *
- * 4. Publish it.
+ * 5. Publish it.
  *
  *    If a deployment already exists, keep it. Deploy → Manage deployments →
  *    pencil icon → Version: New version → Deploy. The /exec URL does not
@@ -59,12 +65,45 @@ var SHEET_ID = '';
 
 var TIMESTAMP_FORMAT = 'd mmm yyyy, h:mm am/pm';
 
+/**
+ * How each notification is printed.
+ *
+ * The two forms are not the same thing and the site has never treated them as
+ * one: an enquiry is answered on the premium cotton rag, and the club's
+ * membership request on the luxury petrol board. See ui/PaperSurface. The mail
+ * now follows the same split, so a membership request is recognisable before
+ * it is read.
+ *
+ * The accent lifts from #cc0000 to #FF4D4D on the dark stock. That is not a
+ * taste decision: the brand red measures 2.90:1 on #141D22, well under the
+ * 4.5:1 small text needs, where #FF4D4D reads 5.23:1. It is the same
+ * substitution ui/Section.jsx makes on every dark ground.
+ */
+var THEMES = {
+  ivory: {
+    page: '#f5f1e8',
+    card: '#faf8f3',
+    rule: '#cc0000',
+    ink: '#14140f',
+    label: '#8a8578',
+    link: '#cc0000',
+  },
+  petrol: {
+    page: '#0d1317',
+    card: '#141D22',
+    rule: '#FF4D4D',
+    ink: '#F2EDE3',
+    label: '#8B979E',
+    link: '#FF4D4D',
+  },
+};
+
 // Reported by doGet, so it is possible to tell from outside whether the
 // deployment is running this file or an older one. Saving in the editor does
 // not update the live URL; only Deploy, Manage deployments, New version does,
 // and the difference is invisible until a submission behaves oddly. Bump this
 // whenever the file changes. scripts/live-submission.mjs compares it.
-var VERSION = '2026-08-21c';
+var VERSION = '2026-08-21d';
 
 /**
  * One entry per form. `headers` is the column order for that tab, `subject`
@@ -91,6 +130,8 @@ var FORMS = {
       'Referrer',
     ],
     replyTo: 'Email Address',
+    theme: 'petrol',
+    heading: 'Membership request',
     // Membership has only one intent, so the name carries the subject.
     subject: function (fields) {
       return 'One.club · Membership request from ' + who(fields);
@@ -111,6 +152,8 @@ var FORMS = {
       'Referrer',
     ],
     replyTo: 'Email Address',
+    theme: 'ivory',
+    heading: 'New enquiry',
     // The enquiry form asks what they want before it asks who they are, so
     // the subject leads with that: Drive, Stay, Business and so on. It is the
     // one thing worth knowing before the mail is opened.
@@ -161,7 +204,7 @@ function doPost(e) {
   // this it would read an empty body, take the defaults, and append a blank
   // row to the Enquiry tab, which is a worse outcome than an error.
   if (!e) {
-    var runnable = 'sendTestEmail, repairSheets or setUpSheets';
+    var runnable = 'selfTest, sendTestEmail, repairSheets or setUpSheets';
     console.log(
       'doPost is the endpoint the site posts to and cannot be run by hand. ' +
         'Choose ' +
@@ -230,27 +273,49 @@ function doPost(e) {
 }
 
 /**
- * Appends one row, with every cell but the timestamp formatted as plain text
- * before the values go in.
+ * Appends one row, escaping anything Sheets would otherwise read as something
+ * other than the text it is.
  *
- * appendRow was doing this before and could not, because Sheets parses what
- * it is given. A phone number typed as "+91 00000 00000" begins with a plus,
- * which is a formula in Sheets, and it landed in the tab as #ERROR!. Shorter
- * numbers fared no better: they were stored as numbers, which silently drops
- * a leading zero. Setting the format to '@' first makes the cell take the
- * string exactly as sent, which is the only correct reading of a field a
- * person typed a phone number into.
+ * A phone number typed as "+91 90000 00000" begins with a plus, which starts a
+ * formula, and it landed in the tab as a parse error. Shorter numbers fared no
+ * better: stored as numbers, which silently drops a leading zero.
+ *
+ * Formatting the cell as plain text first was tried and is not enough on its
+ * own: setValues parses what it is given regardless of the format sitting on
+ * the cell. The apostrophe is Sheets' own escape for "what follows is literal
+ * text". It is consumed on the way in, so it is not part of what getValue
+ * returns and never appears in the cell.
+ *
+ * It is applied only where it is needed, rather than to every string, so that
+ * an escape leaking through could never mark up an entire sheet. See
+ * asLiteral, and selfTest, which proves this end to end without a deployment.
  */
 function writeRow(sheet, headers, row) {
   var index = sheet.getLastRow() + 1;
-  var range = sheet.getRange(index, 1, 1, headers.length);
 
-  range.setNumberFormats([
-    headers.map(function (h) {
-      return normaliseHeader(h) === 'timestamp' ? TIMESTAMP_FORMAT : '@';
-    }),
-  ]);
-  range.setValues([row]);
+  sheet.getRange(index, 1, 1, headers.length).setValues([row.map(asLiteral)]);
+
+  if (normaliseHeader(headers[0]) === 'timestamp') {
+    sheet.getRange(index, 1).setNumberFormat(TIMESTAMP_FORMAT);
+  }
+}
+
+/**
+ * Two kinds of string get misread, and only these two are escaped:
+ *
+ *   a leading = + - or @   starts a formula
+ *   digits, spaces, brackets, plus and hyphen only   is read as a number,
+ *                          which loses any leading zero
+ *
+ * A name or an address is left exactly as it arrived.
+ */
+function asLiteral(value) {
+  if (typeof value !== 'string' || value === '') return value;
+
+  var startsFormula = /^[=+\-@]/.test(value);
+  var looksNumeric = /^[\d\s()+-]+$/.test(value);
+
+  return startsFormula || looksNumeric ? "'" + value : value;
 }
 
 // Opening the /exec URL in a browser should say something useful rather than
@@ -413,6 +478,7 @@ function setColumnFormats(sheet, headers) {
  * which is whoever is already reading the mail.
  */
 function notify(config, headers, row, fields) {
+  var theme = THEMES[config.theme] || THEMES.ivory;
   var zone = Session.getScriptTimeZone();
   var lines = [];
   var cells = '';
@@ -426,41 +492,59 @@ function notify(config, headers, row, fields) {
         ? Utilities.formatDate(value, zone, 'd MMM yyyy, h:mm a')
         : String(value);
 
+    // Written into the sheet with a leading apostrophe where Sheets needed
+    // one; the mail should show what the visitor typed, not the escape.
+    if (text.charAt(0) === "'") text = text.slice(1);
+
     lines.push(headers[i] + ': ' + text);
 
     cells +=
       '<tr>' +
       '<td style="padding:10px 18px 10px 30px;vertical-align:top;white-space:nowrap;' +
       'font:600 10px/1.5 Helvetica,Arial,sans-serif;letter-spacing:.09em;' +
-      'text-transform:uppercase;color:#8a8578;">' +
+      'text-transform:uppercase;color:' +
+      theme.label +
+      ';">' +
       escapeHtml(headers[i]) +
       '</td>' +
       '<td style="padding:10px 30px 10px 0;vertical-align:top;' +
-      'font:400 14px/1.5 Helvetica,Arial,sans-serif;color:#14140f;">' +
-      escapeHtml(text) +
+      'font:400 14px/1.5 Helvetica,Arial,sans-serif;color:' +
+      theme.ink +
+      ';">' +
+      linkify(text, theme) +
       '</td>' +
       '</tr>';
   }
 
-  var heading = config === FORMS.membership ? 'Membership request' : 'New enquiry';
-
   var html =
-    '<div style="background:#f5f1e8;padding:28px 0;">' +
-    '<div style="max-width:600px;margin:0 auto;background:#faf8f3;' +
-    'border-top:3px solid #cc0000;">' +
+    '<div style="background:' +
+    theme.page +
+    ';padding:28px 0;">' +
+    '<div style="max-width:600px;margin:0 auto;background:' +
+    theme.card +
+    ';border-top:3px solid ' +
+    theme.rule +
+    ';">' +
     '<div style="padding:26px 30px 0;">' +
     '<div style="font:600 10px/1 Helvetica,Arial,sans-serif;letter-spacing:.22em;' +
-    'text-transform:uppercase;color:#8a8578;">MARQUE.' +
-    '<span style="color:#cc0000;">ONE</span></div>' +
-    '<h1 style="margin:12px 0 0;font:300 27px/1.15 Georgia,serif;color:#14140f;">' +
-    escapeHtml(heading) +
+    'text-transform:uppercase;color:' +
+    theme.label +
+    ';">MARQUE.<span style="color:' +
+    theme.link +
+    ';">ONE</span></div>' +
+    '<h1 style="margin:12px 0 0;font:300 27px/1.15 Georgia,serif;color:' +
+    theme.ink +
+    ';">' +
+    escapeHtml(config.heading) +
     '</h1></div>' +
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0" ' +
     'style="width:100%;border-collapse:collapse;margin:18px 0 0;"><tbody>' +
     cells +
     '</tbody></table>' +
     '<div style="padding:22px 30px 26px;font:400 11px/1.5 Helvetica,Arial,sans-serif;' +
-    'color:#8a8578;">Recorded in the ' +
+    'color:' +
+    theme.label +
+    ';">Recorded in the ' +
     escapeHtml(config.sheet) +
     ' tab. Replying to this message replies to the sender.</div>' +
     '</div></div>';
@@ -479,6 +563,26 @@ function notify(config, headers, row, fields) {
   if (/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(replyTo)) options.replyTo = replyTo;
 
   MailApp.sendEmail(options);
+}
+
+/**
+ * Addresses and URLs get an anchor of our own.
+ *
+ * Left as bare text, mail clients link them themselves and colour them their
+ * own default blue, which is unreadable on the club's dark stock: #1155cc
+ * measures under 2:1 on #141D22. Supplying the anchor keeps the colour ours.
+ */
+function linkify(text, theme) {
+  var safe = escapeHtml(text);
+  var style = 'color:' + theme.link + ';';
+
+  if (/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(text)) {
+    return '<a href="mailto:' + safe + '" style="' + style + '">' + safe + '</a>';
+  }
+  if (/^https?:\/\//.test(text)) {
+    return '<a href="' + safe + '" style="' + style + '">' + safe + '</a>';
+  }
+  return safe;
 }
 
 function escapeHtml(value) {
@@ -532,6 +636,98 @@ function sendTestEmail() {
     { 'Full Name': 'Test Submission', 'Enquiry Type': 'Drive' }
   );
   console.log('Sent to ' + NOTIFY + '. Nothing was written to the sheet.');
+}
+
+/**
+ * Writes a row, reads it straight back, and deletes it.
+ *
+ * Here because the phone number question could not be answered from outside.
+ * A submission tells you a row was written; it cannot tell you what landed in
+ * the cell, and "+91 90000 00000" landing as a formula parse error looked
+ * exactly like a successful write from the site's end.
+ *
+ * This runs from the editor, against the saved file, so it answers the
+ * question without a deployment in the way. Run it after pasting, before
+ * deploying: if it fails, the deployment would have failed the same way.
+ *
+ * It writes into the Enquiry tab and removes what it wrote, whatever happens.
+ */
+function selfTest() {
+  var config = FORMS.enquiry;
+  var target = getSheet(config);
+  var sheet = target.sheet;
+  var headers = target.headers;
+
+  var cases = [
+    { label: 'a number beginning with +', value: '+91 90000 00000' },
+    { label: 'a number with a leading zero', value: '09876543210' },
+    { label: 'ordinary text', value: 'Ravi Menon' },
+  ];
+
+  var firstRow = sheet.getLastRow() + 1;
+  var failures = 0;
+
+  try {
+    for (var i = 0; i < cases.length; i++) {
+      var fields = {
+        'Full Name': 'SELF TEST, deleted automatically',
+        'Phone/WhatsApp': cases[i].value,
+      };
+      var row = headers.map(function (header) {
+        var name = normaliseHeader(header);
+        if (name === 'timestamp') return new Date();
+        return fields[header] === undefined ? '' : fields[header];
+      });
+      writeRow(sheet, headers, row);
+    }
+
+    SpreadsheetApp.flush();
+
+    var column = 0;
+    for (var c = 0; c < headers.length; c++) {
+      if (normaliseHeader(headers[c]) === normaliseHeader('Phone/WhatsApp')) column = c + 1;
+    }
+
+    for (var j = 0; j < cases.length; j++) {
+      var cell = sheet.getRange(firstRow + j, column);
+      var stored = String(cell.getValue());
+      var shown = String(cell.getDisplayValue());
+      var want = cases[j].value;
+
+      var ok = stored === want && shown === want;
+      if (!ok) failures++;
+
+      console.log(
+        (ok ? 'ok    ' : 'FAIL  ') +
+          cases[j].label +
+          '\n        sent      "' +
+          want +
+          '"\n        stored    "' +
+          stored +
+          '"\n        displayed "' +
+          shown +
+          '"'
+      );
+
+      if (stored.charAt(0) === "'") {
+        console.log('        the escape leaked into the value. Tell me and I will change approach.');
+      }
+      if (shown.indexOf('#ERROR') === 0 || shown.indexOf('#VALUE') === 0) {
+        console.log('        Sheets parsed it as a formula, so the escape is not working.');
+      }
+    }
+  } finally {
+    // Whatever happened above, take the rows back out.
+    var written = sheet.getLastRow() - firstRow + 1;
+    if (written > 0) sheet.deleteRows(firstRow, written);
+    SpreadsheetApp.flush();
+  }
+
+  console.log(
+    failures
+      ? '\n' + failures + ' of ' + cases.length + ' failed. The tab is unchanged.'
+      : '\nAll ' + cases.length + ' stored exactly as sent. The tab is unchanged.'
+  );
 }
 
 /**

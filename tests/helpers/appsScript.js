@@ -18,11 +18,32 @@ import vm from 'node:vm';
 const CODE_PATH = path.join(process.cwd(), 'docs', 'apps-script', 'Code.gs');
 const MAX_ROWS = 1000;
 
+/**
+ * How Sheets receives a value, which is the entire reason the phone bug
+ * existed: it parses what it is given rather than storing it.
+ *
+ *   a leading apostrophe   Sheets' own escape. Consumed, not stored.
+ *   a leading = or +       parsed as a formula. "+91 90000 00000" is not one,
+ *                          so the cell becomes a parse error.
+ *   all digits             parsed as a number, losing any leading zero.
+ *
+ * Modelling this rather than storing strings verbatim is what lets these
+ * tests fail when the escape is removed, instead of quietly agreeing with
+ * whatever the code happens to do.
+ */
+export function receiveLikeSheets(value) {
+  if (typeof value !== 'string') return value;
+  if (value.charAt(0) === "'") return value.slice(1);
+  if (/^[=+]/.test(value)) return '#ERROR!';
+  if (/^\d+$/.test(value)) return Number(value);
+  return value;
+}
+
 /** A fake sheet. `grid` is a 2D array; row 1 is the header row. */
 export function makeSheet(name, grid) {
   const cells = grid ? grid.map((r) => r.slice()) : [];
   const formats = {}; // "row:col" -> number format string
-  const meta = { widths: {}, frozen: 0, filter: null, deleted: [], styled: [] };
+  const meta = { widths: {}, frozen: 0, filter: null, deleted: [], deletedRows: [], styled: [] };
 
   const at = (r, c) =>
     cells[r - 1] && cells[r - 1][c - 1] !== undefined ? cells[r - 1][c - 1] : '';
@@ -46,11 +67,12 @@ export function makeSheet(name, grid) {
           line.forEach((value, j) => {
             const c = col + j - 1;
             while (cells[r].length < c) cells[r].push('');
-            cells[r][c] = value;
+            cells[r][c] = receiveLikeSheets(value);
           });
         });
         return self;
       },
+      getDisplayValue: () => String(at(row, col)),
       setNumberFormat(format) {
         for (let r = row; r < row + nRows; r++)
           for (let c = col; c < col + nCols; c++) formats[`${r}:${c}`] = format;
@@ -117,6 +139,10 @@ export function makeSheet(name, grid) {
       meta.deleted.push(index);
       cells.forEach((row) => row.splice(index - 1, 1));
     },
+    deleteRows(index, count) {
+      meta.deletedRows.push([index, count]);
+      cells.splice(index - 1, count);
+    },
   };
 }
 
@@ -151,6 +177,7 @@ export function loadAppsScript(book, onSendMail) {
     SpreadsheetApp: {
       getActiveSpreadsheet: () => book,
       openById: () => book,
+      flush: () => {},
     },
     MailApp: {
       sendEmail(options) {
