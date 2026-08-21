@@ -305,5 +305,5 @@ export const ENQUIRY = {
   // the thing the visitor still doesn't have: dates and a price.
   sub: 'Tell us what you intend to do. We reply with dates and a price.',
   toggles: ['Drive', 'Stay', 'Business'],
-  email: 'info@marque.one',
+  email: 'project.motorclub@marque.one',
 };

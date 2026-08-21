@@ -511,7 +511,7 @@ Accordion, closed by default, three groups, hairline rules, no cards.
 >
 > `[ Send ]`
 >
-> info@marque.one
+> project.motorclub@marque.one
 
 Three toggles swap the fields beneath. **Five fields maximum** — every extra field costs submissions.
 
@@ -616,7 +616,7 @@ Ivory-dominant to match the homepage.
 
 ### Contact (`/contact`)
 
-§14's enquiry, expanded to a full page: the three toggles and form, `info@marque.one`, the stylised location map, and travel time. Charcoal, matching §14, so it runs continuous into the footer.
+§14's enquiry, expanded to a full page: the three toggles and form, `project.motorclub@marque.one`, the stylised location map, and travel time. Charcoal, matching §14, so it runs continuous into the footer.
 
 ### Club (`/club`)
 

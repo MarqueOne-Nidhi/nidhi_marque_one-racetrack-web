@@ -19,8 +19,8 @@ const ENQUIRIES = [
   // than in EXPLORE, which is a column of routes.
   { label: 'Contact', contact: true },
   { label: 'Membership', modal: true },
-  { label: 'General', href: 'mailto:info@marque.one' },
-  { label: 'info@marque.one', href: 'mailto:info@marque.one', accent: true },
+  { label: 'General', href: 'mailto:project.motorclub@marque.one' },
+  { label: 'project.motorclub@marque.one', href: 'mailto:project.motorclub@marque.one', accent: true },
 ];
 
 const LEGAL = [
@@ -32,7 +32,7 @@ const LEGAL = [
 const SOCIALS = [
   { Icon: Facebook, href: 'https://www.facebook.com/Marque-One-Motor-Club-2371764663044839/', label: 'Facebook' },
   { Icon: Instagram, href: 'https://www.instagram.com/marqueone.motorclub/', label: 'Instagram' },
-  { Icon: Mail, href: 'mailto:info@marque.one', label: 'Email' },
+  { Icon: Mail, href: 'mailto:project.motorclub@marque.one', label: 'Email' },
 ];
 
 /**
