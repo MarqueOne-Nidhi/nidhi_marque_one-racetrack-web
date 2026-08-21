@@ -1,15 +1,15 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Section } from './ui/Section';
 import { motion } from 'framer-motion';
 import BlurFadeText from './ui/BlurFadeText';
 import NumberTicker from './ui/NumberTicker';
 import LiquidButton from './ui/LiquidButton';
+import { useContactModal } from './ContactModal';
 
 // Driving here requires no membership, so this section's CTA goes to the
 // booking form rather than the membership modal it used to open.
 export default function TheDrive() {
-  const navigate = useNavigate();
+  const openContact = useContactModal();
 
   return (
     <Section
@@ -63,7 +63,7 @@ export default function TheDrive() {
       </div>
 
       <LiquidButton
-        onClick={() => navigate('/contact?type=drive')}
+        onClick={() => openContact('Drive', 'Club · The drive')}
         variant="ghost"
         size="sm"
         className="group tracking-wider mb-12"

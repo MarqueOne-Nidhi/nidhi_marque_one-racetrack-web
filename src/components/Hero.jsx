@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import BlurFadeText from './ui/BlurFadeText';
 import ShinyText from './ui/ShinyText';
 import LiquidButton from './ui/LiquidButton';
 import { surfaceProps } from './ui/Section';
+import { useContactModal } from './ContactModal';
 
 export default function Hero({ onOpenModal }) {
+  const openContact = useContactModal();
   const [videoLoaded, setVideoLoaded] = useState(false);
   const canvasRef = useRef(null);
 
@@ -96,10 +97,6 @@ export default function Hero({ onOpenModal }) {
       {/* Hero Content */}
       <div className="relative z-10 w-full px-gutter pb-section-xs flex flex-col justify-end">
         <div className="mb-8">
-          <span className="block text-[0.7rem] tracking-widest uppercase text-ivory/60 mb-2">
-            MARQUE <span className="accent">ONE</span> MOTORSPORTS CLUB
-          </span>
-          
           {/* One is set in the Estonia script face, .CLUB stays in the site
               serif — the same human/institution contrast the opening signature
               makes. Estonia's glyphs sit small on the em and carry no real
@@ -127,22 +124,23 @@ export default function Hero({ onOpenModal }) {
               visitor's first question the opposite way. Both paths are stated
               here, in the same words the homepage uses. */}
           <p className="font-sans text-[0.85rem] font-light leading-[1.7] text-ivory/65 max-w-measure mt-6">
-            Members hold standing access to the circuit, the garages and the rooms. Everyone else books a day — no membership is needed to drive here.
+            Members hold standing access to the circuit, the garages and the rooms. Everyone else books a day. No membership is needed to drive here.
           </p>
         </div>
 
         <div className="flex justify-between items-end w-full gap-6">
           <div className="flex items-center gap-6 flex-wrap">
-            <LiquidButton onClick={onOpenModal}>
+            <LiquidButton onClick={() => onOpenModal('Club hero')}>
               Request membership →
             </LiquidButton>
 
-            <Link
-              to="/contact?type=drive"
-              className="text-[0.72rem] tracking-widest uppercase text-ivory/60 hover:text-ivory transition-colors"
+            <button
+              type="button"
+              onClick={() => openContact('Drive', 'Club hero')}
+              className="text-[0.72rem] tracking-widest uppercase text-ivory/60 hover:text-ivory transition-colors cursor-pointer"
             >
               Or book a day →
-            </Link>
+            </button>
           </div>
 
           <span className="hidden sm:block text-[0.68rem] tracking-widest uppercase text-ivory/50">

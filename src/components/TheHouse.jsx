@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Section } from './ui/Section';
 import { motion, AnimatePresence } from 'framer-motion';
 import BlurFadeText from './ui/BlurFadeText';
 import LiquidButton from './ui/LiquidButton';
+import { useContactModal } from './ContactModal';
 
 const hotspots = [
   {
@@ -43,7 +43,7 @@ const hotspots = [
 // Rooms are bookable by anyone, driving or not, so this section sends people
 // to the stay form instead of the membership modal.
 export default function TheHouse() {
-  const navigate = useNavigate();
+  const openContact = useContactModal();
   const [hovered, setHovered] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
@@ -66,13 +66,13 @@ export default function TheHouse() {
         />
 
         <p className="font-sans text-[0.9rem] font-light leading-[1.7] ink-muted max-w-measure mt-6">
-          Forty rooms above the circuit, each one different, each one facing either the mountains or the road. Guests who never sit in a car have a full weekend here.
+          Forty rooms above the circuit, each one different, each one facing either the mountains or the track. Guests who never sit in a car have a full weekend here.
         </p>
       </div>
 
       {/* Main image with hotspots */}
       <div
-        className="relative w-full aspect-[16/9] rounded-sm overflow-visible mb-3 cursor-none"
+        className="relative w-full aspect-[16/9] rounded-sm overflow-visible mb-3"
         onMouseMove={handleMouseMove}
       >
         <div className="w-full h-full rounded-sm overflow-hidden">
@@ -143,11 +143,11 @@ export default function TheHouse() {
           fixed by its aspect ratio and the markers are positioned against it,
           so anything added inside would push the markers off their landmarks. */}
       <p className="mb-12 font-sans text-[0.72rem] font-light leading-[1.6] tracking-wide ink-faint max-w-measure">
-        A pool that looks out over the circuit, dining that runs long, and somewhere to sit and watch the road without standing beside it.
+        A pool that looks out over the circuit, dining that runs long, and somewhere to sit and watch the track without standing beside it.
       </p>
 
       {/* CTA */}
-      <LiquidButton variant="secondary" onClick={() => navigate('/contact?type=stay')}>
+      <LiquidButton variant="secondary" onClick={() => openContact('Stay', 'Club · The house')}>
         Book a stay →
       </LiquidButton>
     </Section>

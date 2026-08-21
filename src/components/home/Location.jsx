@@ -2,13 +2,16 @@ import React from 'react';
 import { Section } from '../ui/Section';
 import { motion } from 'framer-motion';
 import { LOCATION } from '../../data/home';
-import ImageSlot from '../ImageSlot';
-import IMAGES from '../../data/images';
+import LocationMap from '../LocationMap';
+import LiquidButton from '../ui/LiquidButton';
 
 export default function Location() {
   return (
     <Section
       id="location"
+      // Ivory. Its neighbours are the hospitality section above (dark) and the
+      // footer below (dark-raised), so nothing it touches shares this ground
+      // and the alternation still holds.
       surface="light"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -37,24 +40,38 @@ export default function Location() {
               </motion.p>
             ))}
           </div>
+
+          {/* Opens in a new tab, so a visitor reading directions does not
+              lose the page they were reading them on. `secondary` is the
+              light-ground variant: this section stands on light-deep. */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-10"
+          >
+            <LiquidButton
+              as="a"
+              href={LOCATION.map.share}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="secondary"
+            >
+              Open in Maps →
+            </LiquidButton>
+          </motion.div>
         </div>
 
-        {/* Stylised map graphics placeholder frame */}
+        {/* The live pin, replacing the circuit-layout still that used to
+            stand in for it. `light` tone: this section is on light-deep. */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1 }}
-          className="rounded-sm overflow-hidden shadow-sm"
         >
-          <ImageSlot
-            src={IMAGES.locationMap.src}
-            alt={IMAGES.locationMap.alt}
-            caption={IMAGES.locationMap.caption}
-            aspect="16/9"
-            placeholderLabel={IMAGES.locationMap.placeholder}
-            className="w-full"
-          />
+          <LocationMap tone="light" className="w-full shadow-sm" showLink={false} />
         </motion.div>
       </div>
     </Section>

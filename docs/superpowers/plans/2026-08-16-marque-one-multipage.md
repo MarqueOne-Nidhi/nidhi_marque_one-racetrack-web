@@ -979,15 +979,15 @@ const EXPLORE = [
 ];
 
 const ENQUIRIES = [
-  { label: 'General',         href: 'mailto:info@marque.one' },
-  { label: 'info@marque.one', href: 'mailto:info@marque.one', accent: true },
+  { label: 'General',         href: 'mailto:project.motorclub@marque.one' },
+  { label: 'project.motorclub@marque.one', href: 'mailto:project.motorclub@marque.one', accent: true },
 ];
 
 const SOCIALS = [
   { Icon: Facebook,  href: '#', label: 'Facebook'  },
   { Icon: Instagram, href: '#', label: 'Instagram' },
   { Icon: Youtube,   href: '#', label: 'YouTube'   },
-  { Icon: Mail,      href: 'mailto:info@marque.one', label: 'Email' },
+  { Icon: Mail,      href: 'mailto:project.motorclub@marque.one', label: 'Email' },
 ];
 ```
 
@@ -2123,7 +2123,7 @@ export const HOME = {
     heading: 'Come and see it.',
     sub: 'Tell us what you intend to do. We will tell you how it works.',
     types: ['Drive', 'Stay', 'Business'],
-    email: 'info@marque.one',
+    email: 'project.motorclub@marque.one',
     fields: {
       Drive:    [{ name: 'name', label: 'Name', type: 'text', required: true }, { name: 'email', label: 'Email', type: 'email', required: true }, { name: 'phone', label: 'Phone', type: 'tel', required: true }, { name: 'car', label: 'What you drive', type: 'text' }, { name: 'notes', label: 'What you have in mind', type: 'textarea' }],
       Stay:     [{ name: 'name', label: 'Name', type: 'text', required: true }, { name: 'email', label: 'Email', type: 'email', required: true }, { name: 'phone', label: 'Phone', type: 'tel', required: true }, { name: 'party', label: 'How many of you', type: 'text' }, { name: 'notes', label: 'What you have in mind', type: 'textarea' }],
@@ -4357,7 +4357,7 @@ describe('Contact', () => {
 
   it('publishes the enquiry address', () => {
     render(<MemoryRouter><Contact /></MemoryRouter>);
-    expect(screen.getAllByText('info@marque.one').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('project.motorclub@marque.one').length).toBeGreaterThan(0);
   });
 
   it('shows how to get there', () => {

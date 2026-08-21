@@ -1,22 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import CursorLens from './components/CursorLens';
 import GlobalAudioButton from './components/GlobalAudioButton';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import MembershipModal from './components/MembershipModal';
+import { ContactModalProvider } from './components/ContactModal';
 import LightboxModal from './components/LightboxModal';
 import ScrollToTop from './components/ScrollToTop';
 import SiteIntro from './components/SiteIntro';
 
 import Home from './pages/Home';
 import About from './pages/About';
-import Contact from './pages/Contact';
+import Business from './pages/Business';
 import Club from './pages/Club';
+import FAQs from './pages/FAQs';
 
 export default function App() {
   const [activeTheme, setActiveTheme] = useState('dark');
   const [isMembershipOpen, setIsMembershipOpen] = useState(false);
+  // Which call to action opened the membership request, recorded against the
+  // submission as `Opened Via`. onOpenModal takes it as an argument rather
+  // than being bound per call site, so a bare `onClick={onOpenModal}` further
+  // down would pass a click event and land a PointerEvent in the sheet. Every
+  // call site therefore wraps it and names itself.
+  const [membershipSource, setMembershipSource] = useState('');
+  const openMembership = (from = '') => {
+    setMembershipSource(from);
+    setIsMembershipOpen(true);
+  };
   const [lightboxData, setLightboxData] = useState({ isOpen: false, src: '', caption: '' });
   
   const location = useLocation();
@@ -79,41 +90,46 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-dark text-ivory">
-      {/* Brand Opening Animation */}
-      <SiteIntro />
+    <ContactModalProvider>
+      <div className="relative min-h-screen bg-dark text-ivory">
+        {/* Brand Opening Animation */}
+        <SiteIntro />
 
-      <ScrollToTop />
+        <ScrollToTop />
 
-      {/* Custom cursor lens & audio — Club-only per §5 */}
-      {isClubRoute && <CursorLens />}
-      {isClubRoute && <GlobalAudioButton />}
+        {/* Audio, Club only per §5. The custom cursor that used to sit
+            beside it is gone: one route with its own pointer made the site
+            feel like two sites. */}
+        {isClubRoute && <GlobalAudioButton />}
 
-      <Navbar
-        activeTheme={activeTheme}
-        onOpenModal={() => setIsMembershipOpen(true)}
-      />
+        <Navbar
+          activeTheme={activeTheme}
+          onOpenModal={() => openMembership('Navbar')}
+        />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/club" element={<Club onOpenModal={() => setIsMembershipOpen(true)} />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/business" element={<Business />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/faqs" element={<FAQs />} />
+          <Route path="/club" element={<Club onOpenModal={openMembership} />} />
+        </Routes>
 
-      <Footer onOpenModal={() => setIsMembershipOpen(true)} />
+        <Footer onOpenModal={() => openMembership('Footer')} />
 
-      <MembershipModal
-        isOpen={isMembershipOpen}
-        onClose={() => setIsMembershipOpen(false)}
-      />
+        <MembershipModal
+          isOpen={isMembershipOpen}
+          source={membershipSource}
+          onClose={() => setIsMembershipOpen(false)}
+        />
 
-      <LightboxModal
-        isOpen={lightboxData.isOpen}
-        src={lightboxData.src}
-        caption={lightboxData.caption}
-        onClose={handleCloseLightbox}
-      />
-    </div>
+        <LightboxModal
+          isOpen={lightboxData.isOpen}
+          src={lightboxData.src}
+          caption={lightboxData.caption}
+          onClose={handleCloseLightbox}
+        />
+      </div>
+    </ContactModalProvider>
   );
 }

@@ -45,11 +45,23 @@ export default function BlurFadeText({
         viewport={{ once: true, margin: '-50px' }}
         className="inline-flex flex-wrap gap-x-[0.25em]"
       >
-        {words.map((word, idx) => (
-          <motion.span key={idx} variants={childVariants} className="inline-block">
-            {word === '<br>' || word === '<br/>' ? <br /> : word}
-          </motion.span>
-        ))}
+        {words.map((word, idx) => {
+          // A <br> token has to break the row, and a real <br /> cannot do it
+          // here: as a child of a flex container it is blockified into a
+          // zero-size flex item and no line break happens. What flex-wrap
+          // does respond to is an item that fills the row, so the break is a
+          // full-basis spacer of no height. It is not a staggered child
+          // either, since there is nothing in it to fade in.
+          if (word === '<br>' || word === '<br/>') {
+            return <span key={idx} aria-hidden="true" className="basis-full h-0" />;
+          }
+
+          return (
+            <motion.span key={idx} variants={childVariants} className="inline-block">
+              {word}
+            </motion.span>
+          );
+        })}
       </motion.span>
     </Component>
   );

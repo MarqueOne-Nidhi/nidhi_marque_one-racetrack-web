@@ -1,7 +1,7 @@
 import React from 'react';
 import { Section } from '../ui/Section';
 import { motion } from 'framer-motion';
-import { IN_CONFIDENCE } from '../../data/home';
+import { IN_CONFIDENCE } from '../../data/business';
 
 export default function InConfidence() {
   return (

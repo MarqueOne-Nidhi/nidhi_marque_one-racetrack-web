@@ -1,11 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import BlurFadeText from './ui/BlurFadeText';
 import LiquidButton from './ui/LiquidButton';
 import { surfaceProps } from './ui/Section';
+import { useContactModal } from './ContactModal';
 
 export default function Membership({ onOpenModal }) {
+  const openContact = useContactModal();
   return (
     <section
       id="membership"
@@ -42,15 +43,16 @@ export default function Membership({ onOpenModal }) {
         </p>
 
         <div className="flex flex-col items-center gap-4">
-          <LiquidButton onClick={onOpenModal}>
+          <LiquidButton onClick={() => onOpenModal('Club · Membership')}>
             Request membership →
           </LiquidButton>
-          <Link
-            to="/contact?type=drive"
-            className="text-[0.72rem] tracking-widest uppercase text-ivory/50 hover:text-ivory transition-colors mt-2"
+          <button
+            type="button"
+            onClick={() => openContact('Drive', 'Club · Membership')}
+            className="text-[0.72rem] tracking-widest uppercase text-ivory/50 hover:text-ivory transition-colors mt-2 cursor-pointer"
           >
             Not a member? Book a day →
-          </Link>
+          </button>
           <a
             href="mailto:club.one@marque.one"
             className="text-[0.72rem] tracking-widest uppercase text-ivory/40 hover:text-ivory transition-colors"

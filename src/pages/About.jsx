@@ -10,28 +10,31 @@ export default function About() {
       id: 'club',
       title: (
         <>
-          Marque <span className="accent">One</span> Motorsports Club
+          Marque.<span style={{ color: '#cc0000' }}>One</span> Motorsports Club
         </>
       ),
-      desc: 'The 219-acre motorsport estate. Circuit, drag strip, off-road course, skid pan, wet handling track, clubhouse, rooms, and storage.',
+      desc: 'The 219-acre motorsport club. Circuit, drag strip, off-road course, skid pan, wet handling track, clubhouse, rooms, and storage.',
+      link: '/',
     },
     {
       id: 'garage',
       title: (
         <>
-          Marque <span className="accent">One</span> Garage
+          Marque.<span style={{ color: '#cc0000' }}>One</span> Garage
         </>
       ),
-      desc: 'Precision maintenance, restoration, track preparation, and storage for performance, luxury, and vintage automobiles in Bengaluru.',
+      desc: 'Precision maintenance, restoration, track preparation, and storage for performance, luxury, and vintage automobiles.',
+      link: 'https://www.marqueone.in/',
     },
     {
       id: 'classifieds',
       title: (
         <>
-          Marque <span className="accent">One</span> Classifieds
+          Marque.<span style={{ color: '#cc0000' }}>One</span> Classifieds
         </>
       ),
       desc: 'Curated sales, sourcing, and brokerage for verified high-performance and collector motorcars.',
+      link: 'https://www.instagram.com/marqueone.classifieds',
     },
   ];
 
@@ -41,38 +44,33 @@ export default function About() {
       role: 'Founder & Director',
       bio: (
         <>
-          Automotive enthusiast, circuit driver, and entrepreneur behind Nidhi Marque{' '}
-          <span className="accent">One</span> Motors. Spearheading the design and execution of India’s premier private motorsport destination.
+          Automotive enthusiast, circuit driver, and entrepreneur behind Nidhi Marque.{' '}
+          <span style={{ color: '#cc0000' }}>One</span> Motors. Spearheading the design and execution of India’s premier private motorsport destination.
         </>
       ),
     },
     {
       name: 'Shana Parmeshwar',
       role: 'Director & Co-Founder',
-      bio: 'Collector, driver, and motorsport advocate. Bringing global automotive experience and lifestyle curation to the estate’s hospitality and community.',
+      bio: 'Collector, driver, and motorsport advocate. Bringing global automotive experience and lifestyle curation to the club’s hospitality and community.',
     },
     {
       name: 'M. G. Chakravarthi Rajan',
       role: 'Founder, Nidhi Group',
-      bio: 'Visionary behind Anuadi Constructions (est. 1991) and the Nidhi Group, providing the foundational civil engineering and land development heritage powering the 219-acre estate.',
+      bio: 'Visionary behind Anuadi Constructions (est. 1991) and the Nidhi Group, providing the foundational civil engineering and land development heritage powering the 219-acre club.',
     },
   ];
 
-  const partners = [
+  const projectCredits = [
     {
       name: 'Driven International',
       role: 'Circuit Architecture & Master Planning',
-      desc: 'World-renowned motorsport venue designers (Abu Dhabi, Kari Motor Speedway, Nanoli) who authored the 3.2 km FIA-graded circuit layout.',
-    },
-    {
-      name: 'Autocar India',
-      role: 'Media & Track Test Partner',
-      desc: 'India’s leading automotive publication, partnering on vehicle testing, performance benchmarking, and press launches at the estate.',
+      desc: 'UK-based motorsport venue designers specialising in FIA-graded circuit layouts, driving facilities, and race track master planning.',
     },
     {
       name: 'Anuadi Constructions',
-      role: 'Civil Engineering & Execution',
-      desc: 'Three decades of large-scale infrastructure development across South India, managing earthworks, asphalt layout, and structural builds.',
+      role: 'Civil Engineering',
+      desc: 'Civil engineering and infrastructure development firm established in 1991, executing site earthworks, track paving, and facility structures.',
     },
   ];
 
@@ -87,7 +85,7 @@ export default function About() {
         className="pt-[120px] pb-section-xs"
       >
         <span className="block text-[0.7rem] tracking-ultra uppercase ink-faint mb-3">
-          ABOUT MARQUE <span className="accent">ONE</span>
+          ABOUT MARQUE.<span style={{ color: '#cc0000' }}>ONE</span>
         </span>
         <motion.h1
           initial={{ opacity: 0, y: 24 }}
@@ -95,7 +93,9 @@ export default function About() {
           transition={{ duration: 0.8 }}
           className="font-serif text-[clamp(2.8rem,6vw,6rem)] font-light leading-[0.95] tracking-tight mb-8 max-w-measure-xl"
         >
-          Built by people with a record.
+          Built by Racers.
+          <br />
+          For Drivers.
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -103,7 +103,7 @@ export default function About() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="font-sans text-[clamp(0.95rem,1.4vw,1.15rem)] font-light ink-muted max-w-measure leading-relaxed"
         >
-          Marque <span className="accent">One</span> was founded to create spaces and services for people who take driving seriously. What began as a specialist performance workshop has grown into a 219-acre motorsport sanctuary.
+          Marque.<span style={{ color: '#cc0000' }}>One</span> was founded to create spaces and services for people who take driving seriously. What began as a specialist performance workshop has grown into a 219-acre motorsport sanctuary.
         </motion.p>
       </Section>
 
@@ -147,6 +147,18 @@ export default function About() {
                   {b.desc}
                 </p>
               </div>
+
+              {b.link && (
+                <a
+                  href={b.link}
+                  target={b.link.startsWith('http') ? '_blank' : undefined}
+                  rel={b.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  className="inline-flex items-center gap-1.5 text-[0.72rem] tracking-widest uppercase ink-faint hover:text-[#cc0000] hover:translate-x-1 transition-all mt-6 font-medium group cursor-pointer"
+                >
+                  <span>Visit</span>
+                  <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                </a>
+              )}
             </motion.div>
           ))}
         </div>
@@ -181,33 +193,21 @@ export default function About() {
         </div>
       </Section>
 
-      {/* 4. Partners */}
+      {/* 4. Investor */}
       <Section
         surface="light"
         rhythm="tight"
       >
-        <h2 className="font-serif text-[clamp(2rem,4vw,3.5rem)] font-light leading-[1] tracking-tight mb-12">
-          Partners
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {partners.map((pt, i) => (
-            <motion.div
-              key={pt.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.1 }}
-              className="border-l-2 rule pl-6"
-            >
-              <h3 className="font-serif text-[1.4rem] font-light mb-1">{pt.name}</h3>
-              <span className="text-[0.68rem] tracking-wider uppercase ink-faint block mb-3">
-                {pt.role}
-              </span>
-              <p className="font-sans text-[0.85rem] font-light ink-muted leading-relaxed">
-                {pt.desc}
-              </p>
-            </motion.div>
-          ))}
+        <div className="max-w-measure">
+          <span className="block text-[0.7rem] tracking-ultra uppercase ink-faint mb-3">
+            INVESTOR
+          </span>
+          <h2 className="font-serif text-[clamp(2rem,4vw,3.5rem)] font-light leading-[1.05] tracking-tight mb-4">
+            Backed by House of Jindal.
+          </h2>
+          <p className="font-sans text-[clamp(0.95rem,1.4vw,1.1rem)] font-light ink-muted leading-relaxed">
+            Supported by strategic investment from House of Jindal, backing the development of India’s premier private motorsport destination.
+          </p>
         </div>
       </Section>
     </div>

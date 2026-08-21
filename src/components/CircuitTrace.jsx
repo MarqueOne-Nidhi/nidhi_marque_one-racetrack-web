@@ -42,7 +42,6 @@ const START = { x: 340.8, y: 297.7 };
 export default function CircuitTrace({ className = '', label }) {
   const figureRef = useRef(null);
   const pathRef = useRef(null);
-  const sweepRef = useRef(null);
   const markerRef = useRef(null);
   const trailRef = useRef(null);
   const dotRef = useRef(null);
@@ -59,10 +58,6 @@ export default function CircuitTrace({ className = '', label }) {
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const lapLen = path.getTotalLength();
-
-    // Measure the real path length so the sweeping highlight completes exactly
-    // one lap per animation cycle.
-    if (sweepRef.current) sweepRef.current.style.setProperty('--len', lapLen);
 
     // The two custom properties are the public tuning surface.
     const markerStyle = getComputedStyle(marker);
@@ -205,15 +200,14 @@ export default function CircuitTrace({ className = '', label }) {
           </linearGradient>
         </defs>
 
-        {/* The line, twice: a soft wide base and a crisp top stroke. */}
+        {/* The line, once. There was a second copy over this one at full
+            opacity, dashed so that a 140-unit segment of it lapped the
+            circuit every seven seconds. Because it inherited currentColor it
+            was drawn in the section's ink, near black against a track set at
+            0.42, so it read as a dark scar sliding around the layout rather
+            than as a highlight. The laser already says which way the circuit
+            runs, and it says it in the brand colour. */}
         <use href={`#${TRACE_ID}`} className="circuit-trace" strokeWidth="7" opacity="0.42" />
-        <use
-          ref={sweepRef}
-          href={`#${TRACE_ID}`}
-          className="circuit-trace circuit-sweep"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-        />
 
         {/* One filter on the group covers dot and trail together, so they glow
             as a single emitted object — and the filter region stays the size

@@ -1,14 +1,14 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Section } from './ui/Section';
 import { motion } from 'framer-motion';
 import BlurFadeText from './ui/BlurFadeText';
 import LiquidButton from './ui/LiquidButton';
+import { useContactModal } from './ContactModal';
 
 // Storage is available to anyone who books it, not to members only — the
 // homepage lists it under "On your own" — so this enquires rather than joins.
 export default function TheCar() {
-  const navigate = useNavigate();
+  const openContact = useContactModal();
 
   return (
     <Section
@@ -43,7 +43,7 @@ export default function TheCar() {
             />
           </div>
           <figcaption className="mt-3 font-sans text-[0.72rem] font-light leading-[1.6] tracking-wide ink-faint max-w-measure">
-            Secure, temperature-controlled storage on the estate. The car waits where the road is, twenty minutes from the room you sleep in.
+            Secure, temperature-controlled storage at the club. The car waits where the track is, twenty minutes from the room you sleep in.
           </figcaption>
         </figure>
       </motion.div>
@@ -51,10 +51,10 @@ export default function TheCar() {
       <div className="flex justify-between items-center gap-6 flex-wrap">
         {/* Three adjectives in a row proved nothing. The fact does. */}
         <span className="font-sans text-[0.85rem] font-light leading-[1.7] ink-muted max-w-measure-sm">
-          Two hours from Bengaluru is a long way to drive before you drive. Leave the car here and it is already at the circuit.
+          Leave the car in secure storage at the club and it is always ready trackside whenever you arrive.
         </span>
         <LiquidButton
-          onClick={() => navigate('/contact?type=drive')}
+          onClick={() => openContact('Drive', 'Club · The car')}
           variant="ghost"
           size="sm"
           className="group tracking-wider"

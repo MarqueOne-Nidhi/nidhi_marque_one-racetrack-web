@@ -1,6 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
+/**
+ * `as="a"` renders the same button as a link. Elsewhere on the site a
+ * LiquidButton that navigates is wrapped in a <Link>, which puts a <button>
+ * inside an <a>: browsers cope, but it is invalid, and for an outbound link
+ * it also costs the things an anchor gives for free, middle-click and open
+ * in new tab among them. Pass href with it.
+ */
 export default function LiquidButton({
   children,
   className = '',
@@ -10,8 +17,10 @@ export default function LiquidButton({
   hoverScale = 1.03,
   tapScale = 0.97,
   onClick,
+  as = 'button',
   ...props
 }) {
+  const Tag = as === 'a' ? motion.a : motion.button;
   // Size styles
   const sizeStyles = {
     default: 'px-6 py-2.5 text-[0.75rem]',
@@ -37,7 +46,7 @@ export default function LiquidButton({
   };
 
   return (
-    <motion.button
+    <Tag
       initial="rest"
       whileHover="hover"
       whileTap={{ scale: tapScale }}
@@ -58,6 +67,6 @@ export default function LiquidButton({
       <span className="relative z-10 flex items-center gap-2 transition-colors duration-300">
         {children}
       </span>
-    </motion.button>
+    </Tag>
   );
 }

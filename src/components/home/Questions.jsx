@@ -9,7 +9,12 @@ import { FAQ } from '../../data/home';
 // fills reserved space instead of pushing the rest of the page down.
 const ANSWER_RESERVE = 104;
 
-export default function Questions() {
+export default function Questions({
+  // The section titles itself on the home page, where it is one block among
+  // many. On /faqs the page has already said it in the h1, so the caller
+  // passes null rather than having it said twice one line apart.
+  heading = 'FAQs',
+}) {
   // Store open state by string identifier `groupIndex-itemIndex`
   const [openItems, setOpenItems] = useState({});
   // Hover-opened answer — collapses again as soon as the pointer leaves
@@ -60,28 +65,35 @@ export default function Questions() {
     return () => window.removeEventListener('resize', measure);
   }, []);
 
+  // With the section heading suppressed the group titles are the highest
+  // level here, so they step up rather than leaving a hole in the outline
+  // between the page h1 and an h3.
+  const GroupTitle = heading ? 'h3' : 'h2';
+
   return (
     <Section
       id="questions"
       surface="light-deep"
       measure="xl"
     >
-      <motion.h2
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className="font-serif text-[clamp(2.4rem,5vw,4.5rem)] font-light leading-[1] tracking-tight mb-16"
-      >
-        FAQs
-      </motion.h2>
+      {heading && (
+        <motion.h2
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="font-serif text-[clamp(2.4rem,5vw,4.5rem)] font-light leading-[1] tracking-tight mb-16"
+        >
+          {heading}
+        </motion.h2>
+      )}
 
       <div className="flex flex-col gap-16">
         {FAQ.groups.map((group, groupIdx) => (
           <div key={group.title} className="flex flex-col">
-            <h3 className="font-serif text-[clamp(1.4rem,2.2vw,2rem)] font-light mb-6 border-b rule pb-3">
+            <GroupTitle className="font-serif text-[clamp(1.4rem,2.2vw,2rem)] font-light mb-6 border-b rule pb-3">
               {group.title}
-            </h3>
+            </GroupTitle>
 
             <div style={{ minHeight: groupHeights[groupIdx] }}>
               <div

@@ -9,7 +9,7 @@ const IMAGES = {
     src: '/assets/videos/home_lambo.mp4',
     type: 'video',
     aspect: '16/9',
-    alt: 'Aerial motion view of Marque One motorsport estate',
+    alt: 'Aerial motion view of Marque One motorsport club',
     section: 'HomeHero',
   },
 
@@ -17,7 +17,7 @@ const IMAGES = {
   circuitTrace: {
     src: '/assets/images/estate/home_circuit_layout_1786898968534.png',
     aspect: '21/9',
-    alt: 'Circuit layout — 3.2 km FIA-graded layout and elevation contours',
+    alt: 'Circuit layout: 3.2 km FIA-graded layout and elevation contours',
     section: 'Circuit',
   },
 
@@ -37,13 +37,13 @@ const IMAGES = {
   surfaceSkidpan: {
     src: '/assets/images/estate/surface_skidpan_drift_1786899998994.png',
     aspect: '3/2',
-    alt: 'Skid pan — low-grip surface drift control',
+    alt: 'Skid pan: low-grip surface drift control',
     section: 'Surfaces',
   },
   surfaceKickplate: {
     src: '/assets/images/estate/surface_kickplate_test_1786900022264.png',
     aspect: '3/2',
-    alt: 'Kick plate — lateral destabilisation training',
+    alt: 'Kick plate: lateral destabilisation training',
     section: 'Surfaces',
   },
   surfaceWetTrack: {
@@ -67,7 +67,7 @@ const IMAGES = {
     src: '/assets/images/estate/home_with_people_1786900653081.png',
     aspect: '16/9',
     alt: 'Group of friends on trackside terrace at twilight',
-    caption: 'Take the estate for a weekend with the garages, the marshals and the gate closed behind you.',
+    caption: 'Take the club for a weekend with the garages, the marshals and the gate closed behind you.',
     section: 'WithPeople',
   },
 
@@ -75,8 +75,8 @@ const IMAGES = {
   hospitalityClubhouse: {
     src: '/assets/images/estate/home_hospitality_clubhouse_1786900669787.png',
     aspect: '16/9',
-    alt: 'Modern estate clubhouse facing circuit and skyline',
-    caption: 'The clubhouse stands above the circuit. You can watch the road from the pool without standing beside it.',
+    alt: 'Modern clubhouse facing circuit and skyline',
+    caption: 'The clubhouse stands above the circuit. You can watch the track from the pool without standing beside it.',
     section: 'Hospitality',
   },
   hospitalityPool: {
@@ -108,10 +108,10 @@ const IMAGES = {
   locationMap: {
     src: '/assets/images/estate/home_circuit_layout_1786898968534.png',
     aspect: '16/9',
-    alt: 'Location map — 2 hours from Bengaluru airport',
+    alt: 'Location map: 2 hours from Bengaluru airport',
     // Contact.jsx sets LOCATION.body beside this same image, so the caption is
     // used on the homepage only — printing both would say the distance twice.
-    caption: 'Two hours by road from Kempegowda International Airport. The estate keeps no public gate, so nobody arrives by accident.',
+    caption: 'Two hours by road from Kempegowda International Airport. The club keeps no public gate, so nobody arrives by accident.',
     section: 'Location',
   },
 
@@ -119,8 +119,8 @@ const IMAGES = {
   aboutHeader: {
     src: '/assets/images/estate/home_hospitality_clubhouse_1786900669787.png',
     aspect: '21/9',
-    alt: 'The Marque One estate grounds',
-    caption: '219 acres outside Bengaluru: a 3.2 km FIA-graded circuit, an 800-metre drag strip integrated into the lap, and the clubhouse above them.',
+    alt: 'The Marque One club grounds',
+    caption: '219 acres: a 3.2 km FIA-graded circuit, an 800-metre drag strip integrated into the lap, and the clubhouse above them.',
     section: 'About',
   },
 };

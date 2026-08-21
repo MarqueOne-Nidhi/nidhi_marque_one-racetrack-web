@@ -104,7 +104,7 @@ export default function TheExperience() {
           />
 
           <p className="font-sans text-[0.9rem] font-light leading-[1.7] ink-muted max-w-measure mt-6">
-            Arrive Friday, drive Saturday and Sunday, and sleep twenty minutes from the car rather than two hours.
+            Arrive Friday, drive Saturday and Sunday, and sleep minutes from the car.
           </p>
         </div>
 
