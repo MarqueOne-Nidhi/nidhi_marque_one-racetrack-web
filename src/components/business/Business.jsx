@@ -166,6 +166,10 @@ export default function Business() {
                   ref={cylinder}
                   cards={CARDS}
                   drive="scroll"
+                  // Mirrored against the home page: here the cards rise as
+                  // the page goes down, so the stack runs against the scroll
+                  // rather than with it.
+                  spin="up"
                   scrollRef={track}
                   onActiveChange={setActive}
                   className="md:col-span-6 h-[clamp(320px,46vh,460px)] md:h-[clamp(440px,68vh,760px)]"

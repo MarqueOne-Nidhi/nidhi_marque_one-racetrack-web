@@ -110,6 +110,74 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 /**
+ * Where one card sits, given how many cards it is from the front.
+ *
+ * Pure, and exported, because it is the whole geometry of the thing and the
+ * only way to check it without a browser is to be able to call it. Nothing in
+ * here touches the DOM or reads a ref.
+ *
+ * `spin` is the direction of travel and the only thing that mirrors it:
+ *
+ *   1   cards enter from the top, pass the front, and leave at the bottom
+ *  -1   the same, upside down
+ *
+ * It appears once, in `lead`, which is the signed direction this card is
+ * displaced in. Both the vertical offset and the tilt take it, so they cannot
+ * disagree: a card that moves up must also rotate as though it were above.
+ * That is why the sign is computed here rather than written out four times at
+ * the call site, which is what it was before and is one edit away from a card
+ * that slides one way while facing the other.
+ */
+export function cardPlacement(offset, metrics, spin = 1) {
+  const { cardH, stageH } = metrics;
+  const D = PERSPECTIVE;
+  const gap = Math.round(cardH * 0.12);
+  const peek = -Math.round(cardH * 0.26);
+
+  const absOffset = Math.abs(offset);
+  const lead = -Math.sign(offset) * spin;
+
+  let y;
+  let z;
+  let rot;
+
+  if (absOffset <= 1) {
+    const t = smoothstep(absOffset);
+    y = lead * t * (cardH + gap);
+    z = lerp(Z[0], Z[1], t);
+    rot = lerp(ROT[0], ROT[1], t);
+  } else if (absOffset <= 2) {
+    const t = smoothstep(absOffset - 1);
+
+    // Perspective-aware, so the card's edge lands on the stage boundary
+    // rather than near it: at depth z a card is scaled by D / (D - z), so
+    // that factor has to be divided back out of the offset.
+    const scaleEnd = D / (D - Z[2]);
+    const yEnd = (stageH / 2 - peek) / scaleEnd - cardH / 2;
+
+    y = lead * lerp(cardH + gap, yEnd, t);
+    z = lerp(Z[1], Z[2], t);
+    rot = lerp(ROT[1], ROT[2], t);
+  } else {
+    const t = smoothstep(Math.min(absOffset - 2, 1));
+
+    const scaleStart = D / (D - Z[2]);
+    const yStart = (stageH / 2 - peek) / scaleStart - cardH / 2;
+
+    // Clear of the stage entirely, so nothing vanishes with a corner still
+    // showing.
+    const scaleEnd = D / (D - Z[3]);
+    const yEnd = (stageH / 2 + 100) / scaleEnd + cardH / 2;
+
+    y = lead * lerp(yStart, yEnd, t);
+    z = lerp(Z[2], Z[3], t);
+    rot = lerp(ROT[2], ROT[3], t);
+  }
+
+  return { y, z, rot, lead, absOffset };
+}
+
+/**
  * How far through the pinned range the page has scrolled, 0 to 1.
  *
  * The pin begins when the top of the track reaches the top of the viewport
@@ -129,6 +197,10 @@ const CardCylinder = forwardRef(function CardCylinder(
     // does not need to know which data file they came from.
     cards,
     drive = 'auto',
+    // Which way the cards travel as the position advances. 'down' is the
+    // original: cards enter at the top and leave at the bottom. 'up' mirrors
+    // it. See cardPlacement, which is the only place it is applied.
+    spin: spinDirection = 'down',
     // scroll drive only: the tall element the pinned section sits inside.
     scrollRef,
     onActiveChange,
@@ -138,6 +210,7 @@ const CardCylinder = forwardRef(function CardCylinder(
 ) {
   const cardCount = cards.length;
   const isScrollDriven = drive === 'scroll';
+  const spin = spinDirection === 'up' ? -1 : 1;
 
   const stageRef = useRef(null);
   const cardRefs = useRef([]);
@@ -226,11 +299,6 @@ const CardCylinder = forwardRef(function CardCylinder(
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     const layout = () => {
-      const { cardH, stageH } = metricsRef.current;
-      const D = PERSPECTIVE;
-      const gap = Math.round(cardH * 0.12);
-      const peek = -Math.round(cardH * 0.26);
-
       const p = progress.current;
       const front = ((Math.round(p) % cardCount) + cardCount) % cardCount;
       if (front !== activeRef.current) {
@@ -250,7 +318,6 @@ const CardCylinder = forwardRef(function CardCylinder(
         while (offset < -half) offset += cardCount;
 
         const absOffset = Math.abs(offset);
-        const sign = Math.sign(offset);
 
         if (absOffset > 3) {
           el.style.visibility = 'hidden';
@@ -275,42 +342,7 @@ const CardCylinder = forwardRef(function CardCylinder(
           ? 'grab'
           : 'pointer';
 
-        let y;
-        let z;
-        let rot;
-
-        if (absOffset <= 1) {
-          const t = smoothstep(absOffset);
-          y = -sign * t * (cardH + gap);
-          z = lerp(Z[0], Z[1], t);
-          rot = lerp(ROT[0], ROT[1], t);
-        } else if (absOffset <= 2) {
-          const t = smoothstep(absOffset - 1);
-
-          // Perspective-aware, so the card's edge lands on the stage boundary
-          // rather than near it: at depth z a card is scaled by D / (D - z),
-          // so that factor has to be divided back out of the offset.
-          const scaleEnd = D / (D - Z[2]);
-          const yEnd = (stageH / 2 - peek) / scaleEnd - cardH / 2;
-
-          y = -sign * lerp(cardH + gap, yEnd, t);
-          z = lerp(Z[1], Z[2], t);
-          rot = lerp(ROT[1], ROT[2], t);
-        } else {
-          const t = smoothstep(Math.min(absOffset - 2, 1));
-
-          const scaleStart = D / (D - Z[2]);
-          const yStart = (stageH / 2 - peek) / scaleStart - cardH / 2;
-
-          // Clear of the stage entirely, so nothing vanishes with a corner
-          // still showing.
-          const scaleEnd = D / (D - Z[3]);
-          const yEnd = (stageH / 2 + 100) / scaleEnd + cardH / 2;
-
-          y = -sign * lerp(yStart, yEnd, t);
-          z = lerp(Z[2], Z[3], t);
-          rot = lerp(ROT[2], ROT[3], t);
-        }
+        const { y, z, rot, lead } = cardPlacement(offset, metricsRef.current, spin);
 
         // Tilt belongs to the card at the front. The ones turning away are
         // already showing an edge, and tilting those reads as a wobble.
@@ -323,7 +355,7 @@ const CardCylinder = forwardRef(function CardCylinder(
         el.style.zIndex = String(Math.round(z) + 1000);
         el.style.transform =
           `translateY(${y.toFixed(2)}px) translateZ(${z.toFixed(2)}px) ` +
-          `rotateX(${(-sign * rot + tiltX).toFixed(2)}deg) ` +
+          `rotateX(${(lead * rot + tiltX).toFixed(2)}deg) ` +
           `rotateY(${tiltY.toFixed(2)}deg) rotateZ(-3deg)`;
       }
     };
@@ -413,7 +445,7 @@ const CardCylinder = forwardRef(function CardCylinder(
       document.removeEventListener('visibilitychange', handleVisibility);
       stop();
     };
-  }, [cardCount, isScrollDriven, scrollRef]);
+  }, [cardCount, isScrollDriven, scrollRef, spin]);
 
   // ── Drag ────────────────────────────────────────────────────────────────
   // Pointer only. On a touch screen a vertical drag is how the page itself is
@@ -440,10 +472,11 @@ const CardCylinder = forwardRef(function CardCylinder(
     const dy = e.clientY - drag.current.startY;
     if (Math.abs(dy) > 4) drag.current.moved = true;
 
-    // Dragging down pulls the next card down from above, the direction the
-    // stack travels on its own.
+    // Dragging follows the cards. With the default spin the stack travels
+    // downward, so dragging down pulls the next one into view; mirrored, the
+    // hand has to mirror too, or the stack moves opposite the pointer.
     const perCard = Math.max(90, metricsRef.current.cardH * DRAG_PER_CARD);
-    const next = drag.current.startProgress + dy / perCard;
+    const next = drag.current.startProgress + (dy * spin) / perCard;
 
     // Velocity in cards per frame, measured against real elapsed time and
     // then smoothed. Taking the raw last-sample delta would hand the release
