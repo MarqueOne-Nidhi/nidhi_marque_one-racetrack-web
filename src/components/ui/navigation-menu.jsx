@@ -186,20 +186,12 @@ function NavigationMenuLink({ className, ...props }) {
       className={cn(
         'block w-full rounded-sm px-4 py-3 font-sans leading-none',
         'text-[0.72rem] tracking-[0.18em] uppercase whitespace-nowrap',
-        'no-underline outline-none transition-all duration-200',
-        // On hover the row takes the ink as its ground and the surface as its
-        // text, so it inverts rather than merely brightening. That is what
-        // makes it read as a block rather than a highlight.
-        //
-        // The resting state fades the colour, not the element. Element
-        // opacity would have faded the hover background along with the text,
-        // and the fill spent its whole transition arriving as a grey smear.
-        // The alpha cannot be a Tailwind opacity modifier either:
-        // text-[var(--ink)]/55 compiles to nothing, because the modifier
-        // cannot take alpha off a CSS variable.
-        'text-[color-mix(in_srgb,var(--ink)_58%,transparent)]',
-        'hover:bg-[var(--ink)] hover:text-[var(--surface)]',
-        'focus-visible:bg-[var(--ink)] focus-visible:text-[var(--surface)]',
+        'no-underline outline-none',
+        // The fill, the resting colour and the timing of both are one thing
+        // and live together in .nav-row in index.css. The row inverts on
+        // hover, taking the ink as its ground and the surface as its text,
+        // and the fill arrives from the left rather than everywhere at once.
+        'nav-row',
         className
       )}
       {...props}

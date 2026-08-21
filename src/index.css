@@ -214,6 +214,45 @@
   fill: var(--laser-hot);
 }
 
+/* ─── The navigation panel row ─────────────────────────────────────────────
+   The hover fill arrives left to right rather than fading in everywhere at
+   once. Painted as a gradient the width of the row and grown with
+   background-size, because that animates from a real edge; a transitioned
+   background-color has no edge to travel.
+
+   The colour is delayed on purpose, and in both directions. The fill grows
+   from the left, so at 0ms the right half of the row is still bare: text that
+   turned to --surface immediately would be dark on dark there and vanish
+   until the fill caught up. Going the other way the fill recedes rightward,
+   so the left of the row, where the text starts, stays covered longest and
+   the text should hold its dark until it is uncovered. One delay serves both,
+   which is why it sits in the base rule rather than under :hover.
+
+   Consumed by ui/navigation-menu.jsx. Kept here rather than in Tailwind
+   because the two directions need one shared declaration. */
+.nav-row {
+  background-image: linear-gradient(var(--ink), var(--ink));
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 0% 100%;
+  color: color-mix(in srgb, var(--ink) 58%, transparent);
+  transition:
+    background-size 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 120ms ease 180ms;
+}
+
+.nav-row:hover,
+.nav-row:focus-visible {
+  background-size: 100% 100%;
+  color: var(--surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-row {
+    transition: none;
+  }
+}
+
 /* The caret in ui/TypeOut. step-end rather than a fade: a caret is on or it
    is off, and easing between the two reads as a glow. */
 @keyframes caret-blink {
