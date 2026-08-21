@@ -33,6 +33,38 @@ const SOCIALS = [
 ];
 
 /**
+ * The watermark fades out downwards, so the wordmark sinks into the foot of
+ * the page rather than sitting on it.
+ *
+ * A mask, not a `background-clip: text` gradient. The wordmark is two colours,
+ * ivory and #cc0000, and painting a gradient through it would flatten both
+ * into whatever the gradient is made of. A mask leaves the colours alone and
+ * only takes the alpha down.
+ *
+ * The percentages are read against the span's own box, which `line-height: 1`
+ * makes exactly one em tall, and the letters do not fill it. Cormorant
+ * Garamond is 1000 units to the em with an ascent of 881 and a descent of
+ * 281, so with a one em line box the half-leading is negative and the
+ * baseline lands at 0.80em from the top; the capitals, at roughly 0.66em, run
+ * from about 14 per cent down to 80 per cent. Fading to zero at 100 per cent
+ * would therefore leave the feet of the letters at about a fifth of their
+ * alpha, which is dim but plainly still there. Zero belongs at the baseline.
+ *
+ * The middle stops are a smoothstep between the two ends. A single linear
+ * ramp puts a visible shoulder where the fade starts and a corner where it
+ * lands, and on type this faint both edges read as banding.
+ */
+const WATERMARK_FADE =
+  'linear-gradient(to bottom,' +
+  ' #000 0%,' +
+  ' #000 35%,' + /* holds full strength through the top third of the caps */
+  ' rgba(0,0,0,0.88) 45%,' +
+  ' rgba(0,0,0,0.61) 55%,' +
+  ' rgba(0,0,0,0.30) 65%,' +
+  ' rgba(0,0,0,0.08) 74%,' +
+  ' transparent 82%)'; /* just past the baseline */
+
+/**
  * The footer is the one fixed point in the surface system: it is `dark-raised`
  * on every page, always. That is what lets any page end on `dark` without the
  * two running together. The corresponding constraint is that no page may end
@@ -189,7 +221,22 @@ export default function Footer({ onOpenModal }) {
             and is where the halves actually match by eye. */}
         <span
           className="font-serif font-semibold text-ivory/15 leading-none whitespace-nowrap uppercase tracking-[0.02em] block"
-          style={{ fontSize: 'clamp(3.5rem, 11vw, 10rem)', lineHeight: 1 }}
+          style={{
+            fontSize: 'clamp(3.5rem, 11vw, 10rem)',
+            lineHeight: 1,
+            // On the span rather than the wrapper. The wrapper is a fixed
+            // clamp() box that the type deliberately overflows, so a mask
+            // there would be measured against the wrong height. The span's
+            // box is the line box, which is what the letters actually sit in.
+            maskImage: WATERMARK_FADE,
+            WebkitMaskImage: WATERMARK_FADE,
+            // Without these the gradient tiles beyond the box instead of
+            // ending, which puts a second fade above the letters.
+            maskRepeat: 'no-repeat',
+            WebkitMaskRepeat: 'no-repeat',
+            maskSize: '100% 100%',
+            WebkitMaskSize: '100% 100%',
+          }}
         >
           MARQUE.<span style={{ color: '#cc0000' }} className="opacity-20">ONE</span>
         </span>
