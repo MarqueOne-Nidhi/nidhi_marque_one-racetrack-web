@@ -85,10 +85,10 @@ export default function Navbar({ onOpenModal, activeTheme }) {
   const isLight = activeTheme === 'light';
 
   const logoSrc = isLogoHovered
-    ? '/logo-red.png'
+    ? '/logo-red.svg'
     : isLight
-    ? '/logo-black.png'
-    : '/logo-white.png';
+    ? '/logo-black.svg'
+    : '/logo-white.svg';
 
   const textColorClass = isLight ? 'text-dark' : 'text-ivory';
 

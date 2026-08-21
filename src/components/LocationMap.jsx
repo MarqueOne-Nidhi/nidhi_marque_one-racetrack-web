@@ -164,7 +164,7 @@ export default function LocationMap({
             than to the frame. */}
         <img
           ref={pinRef}
-          src="/logo-red.png"
+          src="/logo-red.svg"
           alt=""
           aria-hidden="true"
           draggable="false"

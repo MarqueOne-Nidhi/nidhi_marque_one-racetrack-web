@@ -103,7 +103,7 @@ export default function Footer({ onOpenModal }) {
               aria-label="Marque One Home"
             >
               <img
-                src="/logo-red.png"
+                src="/logo-red.svg"
                 alt="Marque One Motorsport Club"
                 className="h-20 w-auto opacity-85 group-hover:opacity-100 transition-opacity duration-300 mx-auto"
               />
