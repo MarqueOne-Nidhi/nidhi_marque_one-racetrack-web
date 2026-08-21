@@ -214,6 +214,19 @@
   fill: var(--laser-hot);
 }
 
+/* The caret in ui/TypeOut. step-end rather than a fade: a caret is on or it
+   is off, and easing between the two reads as a glow. */
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
 /* ─── Leaflet, on this site's palette ──────────────────────────────────────
    Leaflet ships a white attribution box with blue links and its own sans
    stack. Everything here is only about making its furniture read as part of
