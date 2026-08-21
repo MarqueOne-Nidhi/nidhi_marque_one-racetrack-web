@@ -74,7 +74,7 @@ export const CIRCUIT_COPY = {
   heading: 'The circuit',
   body: [
     'The track climbs and drops twenty-five metres either side of level. It goes blind over crests. It is never flat and never twice the same.',
-    'The drag strip runs on the circuit itself: eight hundred metres from a standing start, timed to the thousandth.',
+    'The drag strip runs on the circuit itself: a full kilometre from a standing start, timed to the thousandth.',
     'An FIA-graded circuit, with race-grade asphalt run-off, permanent barriers and full trackside electronics. Designed by Driven International.',
   ],
 };
@@ -270,7 +270,7 @@ export const FAQ = {
         { q: 'Do I need a competition licence?', a: 'No. A valid driving licence is enough.' },
         { q: 'What car do I need?', a: 'A road-legal car in sound mechanical condition. Not a fast one. A normal car driven properly teaches more than a fast car driven badly.' },
         { q: 'Is instruction available?', a: 'There is a motorsport academy at the club.' },
-        { q: 'How long is the circuit?', a: '3.2 kilometres, with an 800-metre drag strip integrated into the lap and ±25 metres of elevation.' },
+        { q: 'How long is the circuit?', a: '5.2 kilometres, with a 1000-metre drag strip integrated into the lap and ±25 metres of elevation.' },
         { q: 'What else is there besides the circuit?', a: 'An off-road and rock-crawl course, a skid pan, a kick plate and a wet handling track. The drag strip runs on the circuit itself.' },
         { q: 'Can I keep my car here?', a: 'Secure, temperature-controlled storage is on site.' },
         { q: 'Is there medical cover?', a: 'A medical facility operates at the club, staffed whenever the circuit is live.' },

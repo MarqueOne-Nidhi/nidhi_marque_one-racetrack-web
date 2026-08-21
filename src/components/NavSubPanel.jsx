@@ -102,9 +102,10 @@ function WipeRow({ open, surface, className = '', children, ...linkProps }) {
  * say which one it belongs to. The swell is the panel's own silhouette, not an
  * arrow laid on top — see the notes on `swell()`.
  */
-export default function NavSubPanel({ groups, isLight, onNavigate, pointerX = 0 }) {
+export default function NavSubPanel({ groups, items, isLight, onNavigate, pointerX = 0 }) {
+  const isSingle = Boolean(items && !groups);
   const [activeIdx, setActiveIdx] = useState(0);
-  const active = groups[activeIdx] ?? groups[0];
+  const active = groups ? (groups[activeIdx] ?? groups[0]) : null;
 
   // The panel's own box, so the pointer can be placed in panel-local
   // coordinates from the viewport x the bar reports.
@@ -165,7 +166,7 @@ export default function NavSubPanel({ groups, isLight, onNavigate, pointerX = 0 
       // The bar is 76px; the panel starts POINT_RISE above it so the swell has
       // somewhere to rise into, and its flat top edge still lands at 76.
       style={{ top: 76 - POINT_RISE }}
-      className="fixed inset-x-0 mx-auto w-[min(92vw,520px)]"
+      className={`fixed inset-x-0 mx-auto ${isSingle ? 'w-[min(92vw,280px)]' : 'w-[min(92vw,520px)]'}`}
       ref={panelRef}
     >
       {/* The swell's fill. Clipped to the curve and carrying the same ground
@@ -195,61 +196,83 @@ export default function NavSubPanel({ groups, isLight, onNavigate, pointerX = 0 
       </svg>
 
       <div
-        className={`rounded-b-sm border border-t-0 backdrop-blur-md overflow-hidden grid grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] ${panelBg} ${panelBorder} ${panelShadow}`}
+        className={`rounded-b-sm border border-t-0 backdrop-blur-md overflow-hidden ${
+          isSingle ? 'block' : 'grid grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]'
+        } ${panelBg} ${panelBorder} ${panelShadow}`}
         style={{ marginTop: POINT_RISE }}
       >
-        {/* Rail — the categories */}
-        <ul className="list-none m-0 p-2">
-          {groups.map((group, i) => {
-            const isActive = i === activeIdx;
-            return (
-              <li key={group.label}>
+        {isSingle ? (
+          /* Single list without category rail */
+          <ul className="list-none m-0 p-2">
+            {items.map((item) => (
+              <li key={item.path}>
                 <WipeRow
-                  to={group.path}
-                  open={isActive}
+                  to={item.path}
                   surface={wipeSurface}
-                  onMouseEnter={() => setActiveIdx(i)}
-                  onFocus={() => setActiveIdx(i)}
                   onClick={onNavigate}
-                  aria-current={isActive ? 'true' : undefined}
-                  className={railIdle}
+                  className={itemIdle}
                 >
-                  <span className={railRow}>
-                    <span>{group.label}</span>
-                    {/* Transparent on the idle copy and revealed only on the
-                        inverted one, so it rides in with the wipe rather than
-                        fading on its own — but still holds its width in both,
-                        which is what keeps the label from shifting. */}
-                    <span data-caret className="text-[0.85em] opacity-0">›</span>
-                  </span>
+                  <span className={itemRow}>{item.label}</span>
                 </WipeRow>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        ) : (
+          <>
+            {/* Rail — the categories */}
+            <ul className="list-none m-0 p-2">
+              {groups.map((group, i) => {
+                const isActive = i === activeIdx;
+                return (
+                  <li key={group.label}>
+                    <WipeRow
+                      to={group.path}
+                      open={isActive}
+                      surface={wipeSurface}
+                      onMouseEnter={() => setActiveIdx(i)}
+                      onFocus={() => setActiveIdx(i)}
+                      onClick={onNavigate}
+                      aria-current={isActive ? 'true' : undefined}
+                      className={railIdle}
+                    >
+                      <span className={railRow}>
+                        <span>{group.label}</span>
+                        {/* Transparent on the idle copy and revealed only on the
+                            inverted one, so it rides in with the wipe rather than
+                            fading on its own — but still holds its width in both,
+                            which is what keeps the label from shifting. */}
+                        <span data-caret className="text-[0.85em] opacity-0">›</span>
+                      </span>
+                    </WipeRow>
+                  </li>
+                );
+              })}
+            </ul>
 
-        {/* Pane — the links inside the hovered category. Keyed so it fades
-            on change rather than swapping its text in place. */}
-        <motion.ul
-          key={active.label}
-          initial={{ opacity: 0, x: -4 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
-          className={`list-none m-0 p-2 border-l ${dividerClass}`}
-        >
-          {active.items.map((item) => (
-            <li key={item.path}>
-              <WipeRow
-                to={item.path}
-                surface={wipeSurface}
-                onClick={onNavigate}
-                className={itemIdle}
-              >
-                <span className={itemRow}>{item.label}</span>
-              </WipeRow>
-            </li>
-          ))}
-        </motion.ul>
+            {/* Pane — the links inside the hovered category. Keyed so it fades
+                on change rather than swapping its text in place. */}
+            <motion.ul
+              key={active?.label}
+              initial={{ opacity: 0, x: -4 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className={`list-none m-0 p-2 border-l ${dividerClass}`}
+            >
+              {active?.items?.map((item) => (
+                <li key={item.path}>
+                  <WipeRow
+                    to={item.path}
+                    surface={wipeSurface}
+                    onClick={onNavigate}
+                    className={itemIdle}
+                  >
+                    <span className={itemRow}>{item.label}</span>
+                  </WipeRow>
+                </li>
+              ))}
+            </motion.ul>
+          </>
+        )}
       </div>
     </motion.div>
   );

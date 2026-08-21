@@ -123,49 +123,53 @@ export default function Navbar({ onOpenModal, activeTheme }) {
 
         {/* Desktop Nav Links */}
         <ul className="hidden md:flex items-center gap-[2.4vw] list-none m-0 p-0">
-          {NAV_LINKS.map(({ label, path, groups }) => (
-            <li
-              key={path}
-              ref={(el) => {
-                itemRefs.current[path] = el;
-              }}
-              className="relative"
-              onMouseEnter={() => groups && openSub(path)}
-              onMouseLeave={() => groups && closeSub()}
-              onFocus={() => groups && openSub(path)}
-              onBlur={(e) => {
-                if (groups && !e.currentTarget.contains(e.relatedTarget)) closeSub();
-              }}
-            >
-              <NavLink
-                to={path}
-                end={path === '/'}
-                aria-haspopup={groups ? 'true' : undefined}
-                aria-expanded={groups ? openSubNav === path : undefined}
-                className={({ isActive }) =>
-                  `block py-[1.4rem] text-[0.75rem] tracking-[0.14em] uppercase transition-opacity duration-300 font-sans ${textColorClass} ${
-                    isActive ? 'opacity-100 font-medium' : 'opacity-70 hover:opacity-100'
-                  }`
-                }
+          {NAV_LINKS.map(({ label, path, groups, items }) => {
+            const hasSub = Boolean(groups || items);
+            return (
+              <li
+                key={path}
+                ref={(el) => {
+                  itemRefs.current[path] = el;
+                }}
+                className="relative"
+                onMouseEnter={() => hasSub && openSub(path)}
+                onMouseLeave={() => hasSub && closeSub()}
+                onFocus={() => hasSub && openSub(path)}
+                onBlur={(e) => {
+                  if (hasSub && !e.currentTarget.contains(e.relatedTarget)) closeSub();
+                }}
               >
-                {label}
-              </NavLink>
+                <NavLink
+                  to={path}
+                  end={path === '/'}
+                  aria-haspopup={hasSub ? 'true' : undefined}
+                  aria-expanded={hasSub ? openSubNav === path : undefined}
+                  className={({ isActive }) =>
+                    `block py-[1.4rem] text-[0.75rem] tracking-[0.14em] uppercase transition-opacity duration-300 font-sans ${textColorClass} ${
+                      isActive ? 'opacity-100 font-medium' : 'opacity-70 hover:opacity-100'
+                    }`
+                  }
+                >
+                  {label}
+                </NavLink>
 
-              {/* Hover sub-navigation — desktop only */}
-              {groups && (
-                <AnimatePresence>
-                  {openSubNav === path && (
-                    <NavSubPanel
-                      groups={groups}
-                      isLight={isLight}
-                      pointerX={pointerX}
-                      onNavigate={() => setOpenSubNav(null)}
-                    />
-                  )}
-                </AnimatePresence>
-              )}
-            </li>
-          ))}
+                {/* Hover sub-navigation — desktop only */}
+                {hasSub && (
+                  <AnimatePresence>
+                    {openSubNav === path && (
+                      <NavSubPanel
+                        groups={groups}
+                        items={items}
+                        isLight={isLight}
+                        pointerX={pointerX}
+                        onNavigate={() => setOpenSubNav(null)}
+                      />
+                    )}
+                  </AnimatePresence>
+                )}
+              </li>
+            );
+          })}
         </ul>
 
         {/* Desktop CTA — Contact page link */}
@@ -202,7 +206,8 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                 twenty-odd links — a drawer that opens on all of them is a wall
                 of text before the reader has chosen anything. */}
             <div className="flex flex-col gap-6 overflow-y-auto">
-              {NAV_LINKS.map(({ label, path, groups }) => {
+              {NAV_LINKS.map(({ label, path, groups, items }) => {
+                const hasSub = Boolean(groups || items);
                 const isOpen = openMobileNav === path;
                 return (
                   <div key={path} className="flex flex-col">
@@ -215,7 +220,7 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                         {label}
                       </Link>
 
-                      {groups && (
+                      {hasSub && (
                         <button
                           onClick={() => setOpenMobileNav(isOpen ? null : path)}
                           aria-expanded={isOpen}
@@ -233,7 +238,7 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                     </div>
 
                     <AnimatePresence initial={false}>
-                      {groups && isOpen && (
+                      {hasSub && isOpen && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
@@ -242,14 +247,9 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                           className="overflow-hidden"
                         >
                           <div className="flex flex-col gap-6 pt-4 pl-1 border-l border-ivory/10">
-                            {groups.map((group) => (
-                              <div key={group.label} className="flex flex-col gap-2">
-                                {/* A label, not a link: everything it points
-                                    at is listed directly beneath it. */}
-                                <span className="pl-4 text-[0.6rem] tracking-[0.2em] uppercase text-ivory/35">
-                                  {group.label}
-                                </span>
-                                {group.items.map((item) => (
+                            {items && (
+                              <div className="flex flex-col gap-2">
+                                {items.map((item) => (
                                   <Link
                                     key={item.path}
                                     to={item.path}
@@ -260,7 +260,28 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                                   </Link>
                                 ))}
                               </div>
-                            ))}
+                            )}
+
+                            {groups &&
+                              groups.map((group) => (
+                                <div key={group.label} className="flex flex-col gap-2">
+                                  {/* A label, not a link: everything it points
+                                      at is listed directly beneath it. */}
+                                  <span className="pl-4 text-[0.6rem] tracking-[0.2em] uppercase text-ivory/35">
+                                    {group.label}
+                                  </span>
+                                  {group.items.map((item) => (
+                                    <Link
+                                      key={item.path}
+                                      to={item.path}
+                                      onClick={() => setIsMobileMenuOpen(false)}
+                                      className="pl-4 text-[0.7rem] tracking-[0.12em] uppercase font-sans text-ivory/60 hover:text-ivory transition-colors"
+                                    >
+                                      {item.label}
+                                    </Link>
+                                  ))}
+                                </div>
+                              ))}
                           </div>
                         </motion.div>
                       )}

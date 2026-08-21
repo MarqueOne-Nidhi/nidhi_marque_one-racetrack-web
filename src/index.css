@@ -157,9 +157,9 @@
   --figure-h: min(78vh, 760px);
   position: relative;
   height: var(--figure-h);
-  width: min(100%, calc(var(--figure-h) * 727 / 1020));
+  width: min(100%, calc(var(--figure-h) * 663 / 1000));
   max-width: 100%;
-  aspect-ratio: 727 / 1020;
+  aspect-ratio: 663 / 1000;
   margin-inline: auto;
 }
 
@@ -169,7 +169,7 @@
     width: 100%;
     max-width: 540px;
     height: auto;
-    aspect-ratio: 727 / 1020;
+    aspect-ratio: 663 / 1000;
   }
 }
 

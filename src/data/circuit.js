@@ -3,10 +3,10 @@
 // Change a figure here → it updates everywhere.
 
 export const CIRCUIT = {
-  lap: { value: 3.2, unit: 'km', label: 'lap' },
-  strip: { value: 800, unit: 'm', label: 'drag strip' },
+  lap: { value: 5.2, unit: 'km', label: 'lap' },
+  strip: { value: 1000, unit: 'm', label: 'drag strip' },
   elevation: { value: 25, unit: 'm', label: 'elevation', prefix: '±' },
-  speed: { value: 230, unit: 'km/h', label: 'rated beyond' },
+  speed: { value: 300, unit: 'km/h', label: 'rated beyond' },
 };
 
 export const CIRCUIT_GRADE = 'FIA-graded';

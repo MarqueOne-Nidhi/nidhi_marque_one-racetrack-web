@@ -29,39 +29,38 @@
  * The old For business group is the one that is not coming back: that content
  * now has its own page, and its links live in BUSINESS_GROUPS below.
  */
+/**
+ * Home: the sections currently on the page.
+ * Displayed as a direct list of section links without a side category rail.
+ */
+export const HOME_ITEMS = [
+  { label: 'What Marque.One is', path: '/#definition' },
+  { label: 'How it works', path: '/#how-it-works' },
+  { label: 'The circuit', path: '/#circuit' },
+  { label: 'Around the circuit', path: '/#hospitality' },
+  { label: 'Getting here', path: '/#location' },
+];
+
 export const HOME_GROUPS = [
   {
     label: 'The place',
     path: '/#definition',
-    items: [
-      { label: 'What Marque.One is', path: '/#definition' },
-      { label: 'How it works', path: '/#how-it-works' },
-      { label: 'The circuit', path: '/#circuit' },
-      { label: 'Around the circuit', path: '/#hospitality' },
-      { label: 'Getting here', path: '/#location' },
-    ],
+    items: HOME_ITEMS,
   },
 ];
 
-/** Business: what the club sells, and the terms it sells it on. */
+/** Business: What we host, In confidence, and Enquiry. */
+export const BUSINESS_ITEMS = [
+  { label: 'What we host', path: '/business#business' },
+  { label: 'In confidence', path: '/business#in-confidence' },
+  { label: 'Enquiry', path: '/business#enquiry' },
+];
+
 export const BUSINESS_GROUPS = [
   {
     label: 'What we host',
     path: '/business#business',
-    items: [
-      { label: 'Events and race meetings', path: '/business#events-and-race-meetings' },
-      { label: 'Launches and press', path: '/business#launches-and-press' },
-      { label: 'Corporate programmes', path: '/business#corporate-programmes' },
-      { label: 'Team testing', path: '/business#team-testing' },
-    ],
-  },
-  {
-    label: 'Terms',
-    path: '/business#in-confidence',
-    items: [
-      { label: 'In confidence', path: '/business#in-confidence' },
-      { label: 'Enquire', path: '/business#enquiry' },
-    ],
+    items: BUSINESS_ITEMS,
   },
 ];
 
@@ -96,8 +95,8 @@ export const CLUB_GROUPS = [
 ];
 
 export const NAV_LINKS = [
-  { label: 'Home', path: '/', groups: HOME_GROUPS },
-  { label: 'Business', path: '/business', groups: BUSINESS_GROUPS },
+  { label: 'Home', path: '/', items: HOME_ITEMS },
+  { label: 'Business', path: '/business', items: BUSINESS_ITEMS },
   { label: 'About', path: '/about' },
   { label: 'The Club', path: '/club', groups: CLUB_GROUPS },
 ];
