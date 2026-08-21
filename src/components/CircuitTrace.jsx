@@ -28,6 +28,21 @@ const GLOW_ID = 'm1-lap-glow';
 const FADE_ID = 'm1-lap-fade';
 
 const LAP_DUR = 16000; // one lap, in ms. Lower = faster.
+
+/**
+ * Which way round the marker runs. -1 reverses it.
+ *
+ * The direction is a property of the path, not of this constant: the marker
+ * simply walks CIRCUIT_D in the order it is written, and that order came out
+ * of the trace arbitrarily. CIRCUIT_D as drawn runs clockwise on screen, so
+ * -1 gives anticlockwise.
+ *
+ * If the path is ever replaced, work the new one out rather than guessing.
+ * Sum x1*y2 - x2*y1 around its points: positive is clockwise here, because
+ * SVG's y axis grows downward and inverts the usual sign. The current path
+ * measures +373812.
+ */
+const DIRECTION = -1;
 const LUT_STEPS = 1800; // resolution of the path lookup table
 
 // Closed path of the circuit. Swap this `d` for any closed path and everything
@@ -106,7 +121,9 @@ export default function CircuitTrace({ className = '', label }) {
     // off-screen no frames run, and on the way back the marker should be where
     // it would have got to, not where it left off.
     const head = () =>
-      reduce ? 0 : (((performance.now() - started) % LAP_DUR) / LAP_DUR) * lapLen;
+      reduce
+        ? 0
+        : DIRECTION * (((performance.now() - started) % LAP_DUR) / LAP_DUR) * lapLen;
 
     const draw = () => {
       raf = null;
@@ -116,7 +133,7 @@ export default function CircuitTrace({ className = '', label }) {
       // The beam: sampled backwards along the PATH from the head.
       let d = '';
       for (let i = 0; i <= trailSteps; i++) {
-        const p = pointAt(h - (i / trailSteps) * trailLen);
+        const p = pointAt(h - DIRECTION * (i / trailSteps) * trailLen);
         d += `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
       }
       trail.setAttribute('d', d);
@@ -130,7 +147,7 @@ export default function CircuitTrace({ className = '', label }) {
       // Aim the fade down the beam's own tail-to-head axis. The gradient is
       // straight and the beam is not, but over this length the two agree
       // closely enough that the tail still reads as the transparent end.
-      const tailPt = pointAt(h - trailLen);
+      const tailPt = pointAt(h - DIRECTION * trailLen);
       fade.setAttribute('x1', tailPt[0].toFixed(1));
       fade.setAttribute('y1', tailPt[1].toFixed(1));
       fade.setAttribute('x2', headPt[0].toFixed(1));
