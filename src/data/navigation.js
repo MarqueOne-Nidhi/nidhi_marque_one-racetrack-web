@@ -76,11 +76,14 @@ export const CLUB_GROUPS = [
   },
 ];
 
+// Order is the order in the bar. The Club sits second, directly after Home,
+// because it is the offer rather than a supporting page: Business and About
+// are read by people who already know what this is.
 export const NAV_LINKS = [
   { label: 'Home', path: '/', items: HOME_ITEMS },
+  { label: 'The Club', path: '/club', groups: CLUB_GROUPS },
   { label: 'Business', path: '/business', items: BUSINESS_ITEMS },
   { label: 'About', path: '/about' },
-  { label: 'The Club', path: '/club', groups: CLUB_GROUPS },
 ];
 
 export default NAV_LINKS;
