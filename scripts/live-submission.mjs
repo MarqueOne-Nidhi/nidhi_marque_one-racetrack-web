@@ -11,6 +11,7 @@
  *   npm run test:live -- --form=enquiry
  *   npm run test:live -- --form=membership
  *   npm run test:live -- --check       only ask whether the endpoint is ready
+ *   npm run test:live -- --anyway      send even if the deployment is stale
  *
  * Every row it writes says TEST and asks to be deleted, and the phone number
  * is a real +91 one, because a leading plus is a formula in Sheets and getting
@@ -113,17 +114,40 @@ async function main() {
   console.log(`      email: ${ready.notify ? 'switched on' : 'switched OFF (NOTIFY is empty)'}`);
 
   // Saving in the editor does not update the live URL. This is the only way
-  // to tell from outside whether the deployment is running the current file.
+  // to tell from outside whether the deployment is running the current file,
+  // and not knowing has now produced three rounds of debugging a fix that was
+  // never live. So a stale deployment stops the run rather than warning in
+  // passing: a result read off old code is worse than no result.
   const local = localVersion();
+  const stale = !ready.version || ready.version !== local;
+
   if (!ready.version) {
-    console.log(`      version: not reported, so the deployment predates VERSION`);
-    console.log(`               the file here is ${local}. Redeploy: Deploy,`);
-    console.log(`               Manage deployments, pencil, New version.`);
-  } else if (ready.version !== local) {
-    console.log(`      version: live is ${ready.version}, this repo has ${local}`);
-    console.log(`               the deployment is behind. Redeploy a New version.`);
+    console.log(`      version: none reported, so the deployment is older than`);
+    console.log(`               ${local}, which is what this repo holds`);
+  } else if (stale) {
+    console.log(`      version: live ${ready.version}, repo ${local}`);
   } else {
     console.log(`      version: ${ready.version}, matching this repo`);
+  }
+
+  if (stale && !has('--anyway')) {
+    console.log('');
+    console.log('STOP  The deployment is not running the current file, so');
+    console.log('      anything sent now would test code you have already');
+    console.log('      replaced. Nothing has been sent.');
+    console.log('');
+    console.log('      Saving in the editor, and running functions there, does');
+    console.log('      not publish. Only this does:');
+    console.log('');
+    console.log('        Deploy  ->  Manage deployments  ->  pencil');
+    console.log('        Version:  New version  ->  Deploy');
+    console.log('');
+    console.log('      Run selfTest in the editor first. It checks the saved');
+    console.log('      file, so it tells you whether deploying is worth it.');
+    console.log('');
+    console.log('      npm run test:live -- --anyway   sends regardless.');
+    console.log('');
+    process.exit(1);
   }
 
   if (has('--check')) {

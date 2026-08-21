@@ -653,6 +653,7 @@ function sendTestEmail() {
  * It writes into the Enquiry tab and removes what it wrote, whatever happens.
  */
 function selfTest() {
+  console.log('Running version ' + VERSION + ' from the editor.');
   var config = FORMS.enquiry;
   var target = getSheet(config);
   var sheet = target.sheet;
@@ -756,6 +757,7 @@ function selfTest() {
  * of that. Running it twice is harmless: the second run finds no pairs.
  */
 function repairSheets() {
+  console.log('Running version ' + VERSION + ' from the editor.');
   Object.keys(FORMS).forEach(function (key) {
     var config = FORMS[key];
     var sheet = book().getSheetByName(config.sheet);
