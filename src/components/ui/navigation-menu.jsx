@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationMenu as Base } from '@base-ui/react/navigation-menu';
 import { ChevronDown } from 'lucide-react';
+import SectionLink from './SectionLink';
 import { cn } from '../../lib/cn';
 
 /**
@@ -93,11 +94,28 @@ const navigationMenuTriggerStyle = () =>
     'data-[popup-open]:opacity-100'
   );
 
-function NavigationMenuTrigger({ className, children, ...props }) {
+/**
+ * Given a `to`, the trigger is the link to that page as well as the handle for
+ * its panel: hovering opens the panel, clicking goes to the page. Without one
+ * it stays a button.
+ *
+ * That costs three props rather than one. Base UI renders a real `<button>`
+ * unless told otherwise, and `nativeButton={false}` is how it is told; it then
+ * applies `role="button"` to keep button semantics on whatever it was given,
+ * which is right for a div and wrong for an anchor that genuinely does
+ * navigate. `role` is passed after it, and the last one wins, so the element
+ * is announced as what it is.
+ */
+function NavigationMenuTrigger({ className, children, to, ...props }) {
+  const asLink = to
+    ? { render: <SectionLink to={to} />, nativeButton: false, role: 'link' }
+    : null;
+
   return (
     <Base.Trigger
       data-slot="navigation-menu-trigger"
       className={cn(navigationMenuTriggerStyle(), className)}
+      {...asLink}
       {...props}
     >
       {children}
@@ -179,10 +197,15 @@ function NavigationMenuViewport({ className, tone = 'dark', ...props }) {
   );
 }
 
-function NavigationMenuLink({ className, ...props }) {
+// Base UI leaves the panel open after a link is clicked, on the grounds that
+// it cannot know whether the click navigated anywhere. Here it always does, so
+// the panel has served its purpose and should get out of the way rather than
+// hang over the section the reader was just sent to.
+function NavigationMenuLink({ className, closeOnClick = true, ...props }) {
   return (
     <Base.Link
       data-slot="navigation-menu-link"
+      closeOnClick={closeOnClick}
       className={cn(
         'block w-full rounded-sm px-4 py-3 font-sans leading-none',
         'text-[0.72rem] tracking-[0.18em] uppercase whitespace-nowrap',

@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LiquidButton from './ui/LiquidButton';
+import SectionLink from './ui/SectionLink';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -25,11 +26,11 @@ import { useContactModal } from './ContactModal';
  * open item, a ref to every item to measure from, and a resize listener to
  * re-aim it all. None of that is here now.
  *
- * A Base UI trigger is a button, so an item with a panel is no longer itself
- * the link to its page. Nothing is stranded by that: every panel's first entry
- * is the top of the page it belongs to, so /business#business is /business.
- * The panel carried an explicit page link for a while and it only ever
- * repeated the trigger directly above it.
+ * A Base UI trigger is a button by default, which would leave Home, The Club
+ * and Business as handles for their panels and nothing else: no way to reach
+ * the page itself except through a section of it. Each one is given its `to`
+ * and rendered as a link instead, so hovering opens the panel and clicking
+ * goes to the page. About has no panel and is a link outright.
  */
 export default function Navbar({ onOpenModal, activeTheme }) {
   const openContact = useContactModal();
@@ -136,16 +137,15 @@ export default function Navbar({ onOpenModal, activeTheme }) {
 
               return (
                 <NavigationMenuItem key={link.path}>
-                  <NavigationMenuTrigger>{link.label}</NavigationMenuTrigger>
+                  <NavigationMenuTrigger to={link.path}>{link.label}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     {/* No heading. It only ever repeated the trigger sitting
-                        directly above it, and the page is not stranded
-                        without it: every first entry is the top of its own
-                        page, so /business#business is /business. */}
+                        directly above it, which is now the link to the page
+                        as well, so there is nothing left for it to say. */}
                     <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
                       {sections.map((item) => (
                         <li key={item.path}>
-                          <NavigationMenuLink render={<Link to={item.path} />}>
+                          <NavigationMenuLink render={<SectionLink to={item.path} />}>
                             {item.label}
                           </NavigationMenuLink>
                         </li>
@@ -230,13 +230,13 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                         >
                           {sections.map((item) => (
                             <li key={item.path}>
-                              <Link
+                              <SectionLink
                                 to={item.path}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className="block py-2 font-sans text-[0.82rem] font-light text-ivory/70 no-underline"
                               >
                                 {item.label}
-                              </Link>
+                              </SectionLink>
                             </li>
                           ))}
                         </motion.ul>
