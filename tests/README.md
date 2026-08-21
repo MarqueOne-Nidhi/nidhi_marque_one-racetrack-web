@@ -1,7 +1,11 @@
 # Form submission tests
 
-    npm test           run once
-    npm run test:watch re-run on change
+    npm test            run once
+    npm run test:watch  re-run on change
+    npm run test:live   send a REAL submission to the live endpoint
+
+`npm test` never touches the network. `test:live` is the deliberate exception;
+see test_usage.md.
 
 145 tests over the whole submission path, from a visitor typing in a field to a
 row landing under the right column heading.

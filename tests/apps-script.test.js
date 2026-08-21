@@ -454,6 +454,15 @@ describe('operating it by hand', () => {
     expect(JSON.stringify(status)).not.toContain('@');
   });
 
+  it('reports a version, so a stale deployment can be spotted from outside', () => {
+    // Saving in the editor does not update the live URL, and the difference is
+    // otherwise invisible until a submission behaves oddly.
+    const env = loadAppsScript(makeBook());
+
+    expect(env.get().version).toBe(env.api.VERSION);
+    expect(env.api.VERSION).toMatch(/^\d{4}-\d{2}-\d{2}/);
+  });
+
   it('offers only safe functions first in the editor Run list', () => {
     // The Run control defaults to the first declaration in the file. It used
     // to be `who`, a one line helper, which threw when run with no argument.

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:live": "node scripts/live-submission.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

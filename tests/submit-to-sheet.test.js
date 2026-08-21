@@ -20,6 +20,20 @@ beforeEach(() => {
   Object.defineProperty(document, 'referrer', { configurable: true, value: '' });
 });
 
+/**
+ * The fallback path warns on the way past, which is correct in the browser and
+ * pure noise here: three passing tests were printing stack traces into the
+ * run. This captures the warnings so they can be asserted on instead, which
+ * turns the noise into the thing being checked.
+ */
+const captureWarnings = () => {
+  const warnings = [];
+  vi.spyOn(console, 'warn').mockImplementation((...args) => {
+    warnings.push(args.map(String).join(' '));
+  });
+  return warnings;
+};
+
 describe('what it sends', () => {
   it('posts to the configured endpoint', async () => {
     const calls = stubEndpoint();
@@ -126,14 +140,17 @@ describe('what it reports back', () => {
   });
 
   it('does not claim success when the write is unconfirmed', async () => {
+    const warnings = captureWarnings();
     const calls = stubEndpoint({ throws: new TypeError('Failed to fetch') });
     const result = await submitToSheet('enquiry', FIELDS);
 
     expect(calls).toHaveLength(2);
     expect(result).toMatchObject({ ok: true, unconfirmed: true });
+    expect(warnings.join(' ')).toMatch(/retrying blind/);
   });
 
   it('reposts blind rather than losing the submission when the read is blocked', async () => {
+    captureWarnings();
     const calls = stubEndpoint({ throws: new TypeError('Failed to fetch') });
     await submitToSheet('enquiry', FIELDS);
 
@@ -142,6 +159,7 @@ describe('what it reports back', () => {
   });
 
   it('gives up honestly when even the blind repost fails', async () => {
+    const warnings = captureWarnings();
     stubEndpoint({
       throws: new TypeError('Failed to fetch'),
       thenThrows: new TypeError('Failed to fetch'),
@@ -150,6 +168,7 @@ describe('what it reports back', () => {
 
     expect(result.ok).toBe(false);
     expect(result.error).toMatch(/Could not reach/);
+    expect(warnings.join(' ')).toMatch(/Blind submission failed too/);
   });
 });
 

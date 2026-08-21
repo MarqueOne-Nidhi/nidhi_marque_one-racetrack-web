@@ -20,6 +20,51 @@ npx vitest run --reporter=verbose             # list every test name
 The whole suite takes about five seconds. There is no reason to run less than
 all of it before committing.
 
+**Nothing in `npm test` touches the network.** See the trap about unstubbed
+`fetch` below. To send a real submission on purpose, use the next section.
+
+---
+
+## Sending a real one
+
+```bash
+npm run test:live                       # both forms, for real
+npm run test:live -- --check            # only ask if the endpoint is ready
+npm run test:live -- --form=enquiry     # just one
+```
+
+This writes actual rows into the spreadsheet and sends actual email. It is a
+separate command from `npm test` for that reason, and every row it writes says
+`TEST` and asks to be deleted.
+
+It reports back what the script replied:
+
+```
+ok    enquiry
+      HTTP 200
+      reply {"ok":true,"sheet":"Enquiry","row":3,"notified":true}
+      wrote row 3 of Enquiry
+      phone sent as "+91 90000 00000"
+      emailed
+```
+
+Three things to read in that:
+
+- **`"ok": true`** with a row number means the row is on disk.
+- **`notified`**. `false` means the row is safe but the email threw, which is
+  almost always the mail scope not having been granted. Run `sendTestEmail`
+  from the Apps Script editor and approve the prompt.
+- **`version`**, printed in the header. Saving in the editor does *not* update
+  the live URL; only Deploy, Manage deployments, pencil, New version does, and
+  until now that difference was invisible until a submission behaved oddly.
+  `doGet` reports `VERSION` from `Code.gs`, and this script compares it with
+  the copy in the repo and says so when the deployment is behind.
+
+The phone number it sends starts with `+91` deliberately. A leading plus is a
+formula in Sheets, and that is what put `#ERROR!` in the tab. After a run, the
+phone column should read `+91 …`, not `#ERROR!` and not a right-aligned plain
+number.
+
 ---
 
 ## The two helpers

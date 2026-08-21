@@ -59,6 +59,13 @@ var SHEET_ID = '';
 
 var TIMESTAMP_FORMAT = 'd mmm yyyy, h:mm am/pm';
 
+// Reported by doGet, so it is possible to tell from outside whether the
+// deployment is running this file or an older one. Saving in the editor does
+// not update the live URL; only Deploy, Manage deployments, New version does,
+// and the difference is invisible until a submission behaves oddly. Bump this
+// whenever the file changes. scripts/live-submission.mjs compares it.
+var VERSION = '2026-08-21c';
+
 /**
  * One entry per form. `headers` is the column order for that tab, `subject`
  * turns a submission into the line that arrives in the inbox, and `replyTo`
@@ -254,6 +261,7 @@ function doGet() {
   return json({
     ok: true,
     status: 'ready',
+    version: VERSION,
     forms: Object.keys(FORMS),
     notify: !!NOTIFY,
   });
