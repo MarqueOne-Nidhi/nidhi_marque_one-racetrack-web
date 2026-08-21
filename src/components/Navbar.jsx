@@ -25,11 +25,11 @@ import { useContactModal } from './ContactModal';
  * open item, a ref to every item to measure from, and a resize listener to
  * re-aim it all. None of that is here now.
  *
- * One thing had to be rebuilt rather than dropped. A Base UI trigger is a
- * button, so an item with a panel can no longer also be the link to its page,
- * and "Business" in the bar would have stopped going to /business. Each panel
- * therefore opens with the page itself, set apart from the section links
- * under it, so nothing became unreachable.
+ * A Base UI trigger is a button, so an item with a panel is no longer itself
+ * the link to its page. Nothing is stranded by that: every panel's first entry
+ * is the top of the page it belongs to, so /business#business is /business.
+ * The panel carried an explicit page link for a while and it only ever
+ * repeated the trigger directly above it.
  */
 export default function Navbar({ onOpenModal, activeTheme }) {
   const openContact = useContactModal();
@@ -138,18 +138,11 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                 <NavigationMenuItem key={link.path}>
                   <NavigationMenuTrigger>{link.label}</NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    {/* The page itself, first and set apart. A trigger is a
-                        button, so without this the route would only be
-                        reachable through one of its own sections. */}
-                    <NavigationMenuLink
-                      className="mb-2 border-b rule pb-3 text-[0.72rem] tracking-[0.18em] uppercase opacity-100"
-                      render={<Link to={link.path} />}
-                    >
-                      {link.label}
-                      <span className="accent"> →</span>
-                    </NavigationMenuLink>
-
-                    <ul className="m-0 grid list-none gap-0.5 p-0 sm:grid-cols-2">
+                    {/* No heading. It only ever repeated the trigger sitting
+                        directly above it, and the page is not stranded
+                        without it: every first entry is the top of its own
+                        page, so /business#business is /business. */}
+                    <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
                       {sections.map((item) => (
                         <li key={item.path}>
                           <NavigationMenuLink render={<Link to={item.path} />}>

@@ -117,7 +117,7 @@ function NavigationMenuContent({ className, ...props }) {
     <Base.Content
       data-slot="navigation-menu-content"
       className={cn(
-        'w-full p-5',
+        'w-full p-2',
         // Base UI hands the panel its direction of travel, so an item to the
         // right of the last one slides in from the right.
         'transition-[opacity,transform] duration-300 ease-out',
@@ -184,10 +184,22 @@ function NavigationMenuLink({ className, ...props }) {
     <Base.Link
       data-slot="navigation-menu-link"
       className={cn(
-        'block rounded-sm px-3 py-2 font-sans text-[0.8rem] font-light leading-snug',
-        'no-underline outline-none transition-colors duration-200',
-        'opacity-70 hover:opacity-100 focus-visible:opacity-100',
-        'hover:text-[var(--accent)]',
+        'block w-full rounded-sm px-4 py-3 font-sans leading-none',
+        'text-[0.72rem] tracking-[0.18em] uppercase whitespace-nowrap',
+        'no-underline outline-none transition-all duration-200',
+        // On hover the row takes the ink as its ground and the surface as its
+        // text, so it inverts rather than merely brightening. That is what
+        // makes it read as a block rather than a highlight.
+        //
+        // The resting state fades the colour, not the element. Element
+        // opacity would have faded the hover background along with the text,
+        // and the fill spent its whole transition arriving as a grey smear.
+        // The alpha cannot be a Tailwind opacity modifier either:
+        // text-[var(--ink)]/55 compiles to nothing, because the modifier
+        // cannot take alpha off a CSS variable.
+        'text-[color-mix(in_srgb,var(--ink)_58%,transparent)]',
+        'hover:bg-[var(--ink)] hover:text-[var(--surface)]',
+        'focus-visible:bg-[var(--ink)] focus-visible:text-[var(--surface)]',
         className
       )}
       {...props}
