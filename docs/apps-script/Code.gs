@@ -23,9 +23,11 @@
  *    "Execute as: Me" runs with the permissions you granted it, and this
  *    version asks for a scope the old one did not: permission to send mail
  *    as you. Until you have granted it by running something by hand, every
- *    submission will write its row and then fail on the email.
+ *    submission will write its row and then fail on the email, which is what
+ *    a "notified": false in the reply means.
  *
- * 3. Run `setUpSheets` to lay out both tabs without waiting for a form.
+ * 3. Run `repairSheets` once, then `setUpSheets`. See repairSheets for what
+ *    it does and why it is needed.
  *
  * 4. Publish it.
  *
@@ -54,6 +56,8 @@ var NOTIFY = 'project.motorclub@marque.one';
 // only if the script is standalone, because getActiveSpreadsheet() returns
 // nothing for a script that is not bound to a sheet.
 var SHEET_ID = '';
+
+var TIMESTAMP_FORMAT = 'd mmm yyyy, h:mm am/pm';
 
 /**
  * One entry per form. `headers` is the column order for that tab, `subject`
@@ -114,6 +118,29 @@ function who(fields) {
   return String(fields['Full Name'] || '').trim() || 'an unnamed visitor';
 }
 
+/**
+ * Headers are compared on a normalised form: lowercased, with "(optional)"
+ * dropped and everything that is not a letter or a digit removed.
+ *
+ * Comparing the raw strings is what broke the membership tab. It already
+ * existed, written by the previous script, with
+ *
+ *   Primary Performance Vehicle (Optional)
+ *   Invitation Code/Referral (Optional)
+ *
+ * while the names in FORMS are "Primary Performance Vehicle" and "Invitation
+ * Code / Referral". Not equal, so both were judged missing and appended to
+ * the right, and the tab ended up with two columns for the vehicle and two
+ * for the invitation code. A space, a slash or an "(Optional)" is not a
+ * difference in meaning and must not be enough to fork a column.
+ */
+function normaliseHeader(name) {
+  return String(name)
+    .toLowerCase()
+    .replace(/\(optional\)/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
 // ─── Request handling ──────────────────────────────────────────────────────
 
 function doPost(e) {
@@ -130,24 +157,28 @@ function doPost(e) {
     var target = getSheet(config);
     var headers = target.headers;
 
+    // Keyed the same way the headers are compared, so a column the sheet
+    // spells slightly differently still receives its value. Without this the
+    // tolerant matching above would keep the old column and then leave it
+    // empty for ever, which is worse than the duplicate it replaced.
+    var byName = {};
+    Object.keys(fields).forEach(function (k) {
+      byName[normaliseHeader(k)] = fields[k];
+    });
+
     var row = headers.map(function (header) {
-      if (header === 'Timestamp') return new Date();
-      var value = fields[header];
+      var name = normaliseHeader(header);
+      if (name === 'timestamp') return new Date();
+      var value = byName[name];
       return value === undefined || value === null ? '' : value;
     });
 
-    target.sheet.appendRow(row);
+    writeRow(target.sheet, headers, row);
 
-    // A raw date renders as an unreadable serial number in some locales, and
-    // the format is per cell rather than per column once rows exist.
-    var written = target.sheet.getLastRow();
-    if (headers[0] === 'Timestamp') {
-      target.sheet.getRange(written, 1).setNumberFormat('d mmm yyyy, h:mm am/pm');
-    }
-
-    // The row is already safe on disk. If the mail fails, and quota is the
-    // usual reason, that is worth recording but is not worth telling the
-    // visitor their enquiry was lost, because it was not.
+    // The row is already safe on disk. If the mail fails, and an ungranted
+    // scope or the daily quota is the usual reason, that is worth recording
+    // but is not worth telling the visitor their enquiry was lost, because
+    // it was not.
     var notified = null;
     if (NOTIFY) {
       try {
@@ -159,11 +190,40 @@ function doPost(e) {
       }
     }
 
-    return json({ ok: true, sheet: config.sheet, row: written, notified: notified });
+    return json({
+      ok: true,
+      sheet: config.sheet,
+      row: target.sheet.getLastRow(),
+      notified: notified,
+    });
   } catch (err) {
     console.error(err);
     return json({ ok: false, error: String(err) });
   }
+}
+
+/**
+ * Appends one row, with every cell but the timestamp formatted as plain text
+ * before the values go in.
+ *
+ * appendRow was doing this before and could not, because Sheets parses what
+ * it is given. A phone number typed as "+91 00000 00000" begins with a plus,
+ * which is a formula in Sheets, and it landed in the tab as #ERROR!. Shorter
+ * numbers fared no better: they were stored as numbers, which silently drops
+ * a leading zero. Setting the format to '@' first makes the cell take the
+ * string exactly as sent, which is the only correct reading of a field a
+ * person typed a phone number into.
+ */
+function writeRow(sheet, headers, row) {
+  var index = sheet.getLastRow() + 1;
+  var range = sheet.getRange(index, 1, 1, headers.length);
+
+  range.setNumberFormats([
+    headers.map(function (h) {
+      return normaliseHeader(h) === 'timestamp' ? TIMESTAMP_FORMAT : '@';
+    }),
+  ]);
+  range.setValues([row]);
 }
 
 // Opening the /exec URL in a browser should say something useful rather than
@@ -203,38 +263,22 @@ function parseBody(e) {
 
 // ─── The sheet ─────────────────────────────────────────────────────────────
 
-/**
- * Finds the tab, creating it if missing, and returns the header row that is
- * actually on it.
- *
- * Actually on it, rather than the list above, because the two can disagree.
- * A tab written by an earlier version of this script has that version of the
- * columns; if a row were laid out against the current list, every value after
- * the first new column would land one place to the left of where it belongs.
- * So new columns are appended to the right of whatever is already there, and
- * the row is aligned to the result. Old rows keep their columns, and no
- * column is ever moved out from under the data sitting in it.
- */
-function getSheet(config) {
-  var book = SHEET_ID
+function book() {
+  var file = SHEET_ID
     ? SpreadsheetApp.openById(SHEET_ID)
     : SpreadsheetApp.getActiveSpreadsheet();
 
-  if (!book) {
+  if (!file) {
     throw new Error(
       'No spreadsheet found. Bind this script to the sheet through ' +
         'Extensions and Apps Script, or set SHEET_ID at the top of this file.'
     );
   }
+  return file;
+}
 
-  var sheet = book.getSheetByName(config.sheet);
-  if (!sheet) sheet = book.insertSheet(config.sheet);
-
-  if (sheet.getLastRow() === 0) {
-    layOutHeaders(sheet, config.headers);
-    return { sheet: sheet, headers: config.headers.slice() };
-  }
-
+/** The header row as it actually stands, with trailing blanks trimmed. */
+function readHeaders(sheet) {
   var headers = sheet
     .getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1))
     .getValues()[0]
@@ -245,9 +289,36 @@ function getSheet(config) {
   // getLastColumn() measures the widest row, not the header row, so a wide
   // data row leaves empty strings on the end of this.
   while (headers.length && headers[headers.length - 1] === '') headers.pop();
+  return headers;
+}
+
+/**
+ * Finds the tab, creating it if missing, and returns the header row that is
+ * actually on it.
+ *
+ * Actually on it, rather than the list above, because the two can disagree.
+ * A tab written by an earlier version of this script has that version of the
+ * columns; if a row were laid out against the current list, every value after
+ * the first new column would land one place to the left of where it belongs.
+ * So the row is aligned to what the sheet says, and only genuinely new
+ * columns are appended to the right. Old rows keep their columns, and no
+ * column is ever moved out from under the data sitting in it.
+ */
+function getSheet(config) {
+  var file = book();
+  var sheet = file.getSheetByName(config.sheet);
+  if (!sheet) sheet = file.insertSheet(config.sheet);
+
+  if (sheet.getLastRow() === 0) {
+    layOutHeaders(sheet, config.headers);
+    return { sheet: sheet, headers: config.headers.slice() };
+  }
+
+  var headers = readHeaders(sheet);
+  var present = headers.map(normaliseHeader);
 
   var missing = config.headers.filter(function (h) {
-    return headers.indexOf(h) === -1;
+    return present.indexOf(normaliseHeader(h)) === -1;
   });
 
   if (missing.length) {
@@ -265,7 +336,7 @@ function layOutHeaders(sheet, headers) {
   sheet.setFrozenRows(1);
   // createFilter throws rather than doing nothing if the sheet already has one.
   if (!sheet.getFilter()) sheet.getRange(1, 1, 1, headers.length).createFilter();
-  sheet.setColumnWidth(1, 165);
+  setColumnFormats(sheet, headers);
 }
 
 function styleHeaders(sheet, start, count) {
@@ -285,6 +356,21 @@ function styleHeaders(sheet, start, count) {
       header === 'Submitted From' || header === 'Referrer' ? 240 : 190
     );
   }
+}
+
+/** Timestamps get a date format; everything else is text. See writeRow. */
+function setColumnFormats(sheet, headers) {
+  var rows = sheet.getMaxRows() - 1;
+  if (rows < 1) return;
+
+  for (var c = 0; c < headers.length; c++) {
+    sheet
+      .getRange(2, c + 1, rows, 1)
+      .setNumberFormat(
+        normaliseHeader(headers[c]) === 'timestamp' ? TIMESTAMP_FORMAT : '@'
+      );
+  }
+  sheet.setColumnWidth(1, 165);
 }
 
 // ─── The email ─────────────────────────────────────────────────────────────
@@ -418,4 +504,121 @@ function sendTestEmail() {
     { 'Full Name': 'Test Submission', 'Enquiry Type': 'Drive' }
   );
   console.log('Sent to ' + NOTIFY + '. Nothing was written to the sheet.');
+}
+
+/**
+ * Run once by hand, to undo the damage the exact header matching did.
+ *
+ * The membership tab has two columns for the vehicle and two for the
+ * invitation code, because the version before this one compared header names
+ * as raw strings and did not recognise "Primary Performance Vehicle
+ * (Optional)" as the same thing as "Primary Performance Vehicle". This joins
+ * each such pair back together.
+ *
+ * It is careful in three ways, because it is the only thing here that removes
+ * anything:
+ *
+ *   the leftmost column of a pair is the one that stays, since that is the
+ *   one holding the history;
+ *
+ *   a value is only copied into a cell that is empty, so nothing already
+ *   recorded is ever written over;
+ *
+ *   the duplicate is deleted only after its contents have been moved, and
+ *   deletion runs right to left so the columns still to be removed do not
+ *   shift out from under their own indices.
+ *
+ * Take File → Make a copy first if you would rather not take my word for any
+ * of that. Running it twice is harmless: the second run finds no pairs.
+ */
+function repairSheets() {
+  Object.keys(FORMS).forEach(function (key) {
+    var config = FORMS[key];
+    var sheet = book().getSheetByName(config.sheet);
+
+    if (!sheet || sheet.getLastRow() === 0) {
+      console.log(config.sheet + ': nothing there to repair.');
+      return;
+    }
+
+    var headers = readHeaders(sheet);
+    var lastRow = sheet.getLastRow();
+
+    // Pair every column with the first one that means the same thing.
+    var firstAt = {};
+    var pairs = [];
+    headers.forEach(function (header, i) {
+      var name = normaliseHeader(header);
+      if (!name) return;
+      if (firstAt[name] === undefined) {
+        firstAt[name] = i;
+        return;
+      }
+      pairs.push({ from: i, into: firstAt[name], header: header });
+    });
+
+    if (!pairs.length) {
+      console.log(config.sheet + ': no duplicate columns.');
+    }
+
+    pairs.forEach(function (pair) {
+      var moved = 0;
+      if (lastRow > 1) {
+        var height = lastRow - 1;
+        var source = sheet.getRange(2, pair.from + 1, height, 1).getValues();
+        var keep = sheet.getRange(2, pair.into + 1, height, 1).getValues();
+
+        for (var r = 0; r < height; r++) {
+          if (source[r][0] !== '' && keep[r][0] === '') {
+            keep[r][0] = source[r][0];
+            moved++;
+          }
+        }
+        if (moved) sheet.getRange(2, pair.into + 1, height, 1).setValues(keep);
+      }
+      console.log(
+        config.sheet +
+          ': "' +
+          pair.header +
+          '" folded into column ' +
+          (pair.into + 1) +
+          ', ' +
+          moved +
+          ' value(s) moved.'
+      );
+    });
+
+    pairs
+      .map(function (pair) {
+        return pair.from;
+      })
+      .sort(function (a, b) {
+        return b - a;
+      })
+      .forEach(function (index) {
+        sheet.deleteColumn(index + 1);
+      });
+
+    // Give the survivors the canonical spelling, so the tab reads the way
+    // this file does rather than the way the old script left it.
+    var canonical = {};
+    config.headers.forEach(function (header) {
+      canonical[normaliseHeader(header)] = header;
+    });
+
+    var remaining = readHeaders(sheet).map(function (header) {
+      return canonical[normaliseHeader(header)] || header;
+    });
+    if (remaining.length) {
+      sheet.getRange(1, 1, 1, remaining.length).setValues([remaining]);
+      styleHeaders(sheet, 1, remaining.length);
+      sheet.setFrozenRows(1);
+      setColumnFormats(sheet, remaining);
+    }
+
+    // Anything genuinely missing still needs adding, and the tab is now in a
+    // state where that will not duplicate.
+    var target = getSheet(config);
+    console.log(config.sheet + ' now reads: ' + target.headers.join(' | '));
+  });
 }
