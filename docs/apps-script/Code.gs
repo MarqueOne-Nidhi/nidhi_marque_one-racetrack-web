@@ -114,9 +114,15 @@ var FORMS = {
   },
 };
 
-function who(fields) {
-  return String(fields['Full Name'] || '').trim() || 'an unnamed visitor';
-}
+// Assigned rather than declared, deliberately. The Run control in the Apps
+// Script editor lists function declarations and defaults to the first one in
+// the file, which this used to be; pressing Run without touching the dropdown
+// therefore called who() with no argument and threw "Cannot read properties
+// of undefined (reading 'Full Name')". A one line internal helper should not
+// be the thing the editor offers you first. Same reasoning below.
+var who = function (fields) {
+  return String((fields || {})['Full Name'] || '').trim() || 'an unnamed visitor';
+};
 
 /**
  * Headers are compared on a normalised form: lowercased, with "(optional)"
@@ -134,16 +140,30 @@ function who(fields) {
  * for the invitation code. A space, a slash or an "(Optional)" is not a
  * difference in meaning and must not be enough to fork a column.
  */
-function normaliseHeader(name) {
+var normaliseHeader = function (name) {
   return String(name)
     .toLowerCase()
     .replace(/\(optional\)/g, '')
     .replace(/[^a-z0-9]/g, '');
-}
+};
 
 // ─── Request handling ──────────────────────────────────────────────────────
 
 function doPost(e) {
+  // Reached by pressing Run in the editor rather than by a request. Without
+  // this it would read an empty body, take the defaults, and append a blank
+  // row to the Enquiry tab, which is a worse outcome than an error.
+  if (!e) {
+    var runnable = 'sendTestEmail, repairSheets or setUpSheets';
+    console.log(
+      'doPost is the endpoint the site posts to and cannot be run by hand. ' +
+        'Choose ' +
+        runnable +
+        ' from the function list beside the Run button instead.'
+    );
+    return json({ ok: false, error: 'No request. Run ' + runnable + ' instead.' });
+  }
+
   try {
     var payload = parseBody(e);
     var key = String(payload.form || '').toLowerCase();
