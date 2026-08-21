@@ -14,6 +14,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Business from './pages/Business';
 import Club from './pages/Club';
+import FAQs from './pages/FAQs';
 
 export default function App() {
   const [activeTheme, setActiveTheme] = useState('dark');
@@ -110,6 +111,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/business" element={<Business />} />
           <Route path="/about" element={<About />} />
+          <Route path="/faqs" element={<FAQs />} />
           <Route path="/club" element={<Club onOpenModal={openMembership} />} />
         </Routes>
 

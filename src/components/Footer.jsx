@@ -9,6 +9,9 @@ const EXPLORE = [
   { label: 'Business', path: '/business' },
   { label: 'About', path: '/about' },
   { label: 'The Club', path: '/club' },
+  // Last, and in this column rather than under Enquiries, because that
+  // one is buttons and this is a route.
+  { label: 'FAQs', path: '/faqs' },
 ];
 
 const ENQUIRIES = [
