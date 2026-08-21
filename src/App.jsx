@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import CursorLens from './components/CursorLens';
 import GlobalAudioButton from './components/GlobalAudioButton';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -98,8 +97,9 @@ export default function App() {
 
         <ScrollToTop />
 
-        {/* Custom cursor lens & audio — Club-only per §5 */}
-        {isClubRoute && <CursorLens />}
+        {/* Audio, Club only per §5. The custom cursor that used to sit
+            beside it is gone: one route with its own pointer made the site
+            feel like two sites. */}
         {isClubRoute && <GlobalAudioButton />}
 
         <Navbar

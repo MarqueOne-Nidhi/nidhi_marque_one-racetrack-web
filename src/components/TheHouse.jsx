@@ -72,7 +72,7 @@ export default function TheHouse() {
 
       {/* Main image with hotspots */}
       <div
-        className="relative w-full aspect-[16/9] rounded-sm overflow-visible mb-3 cursor-none"
+        className="relative w-full aspect-[16/9] rounded-sm overflow-visible mb-3"
         onMouseMove={handleMouseMove}
       >
         <div className="w-full h-full rounded-sm overflow-hidden">

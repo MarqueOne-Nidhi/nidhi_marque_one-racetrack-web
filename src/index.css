@@ -105,15 +105,6 @@
   display: none;
 }
 
-/* Custom Cursor Hide — Club page only */
-@media (pointer: fine) {
-  .club-page,
-  .club-page a,
-  .club-page button {
-    cursor: none !important;
-  }
-}
-
 /* Hover Inversion Background Fill Micro-Interaction */
 .hover-invert {
   position: relative;
