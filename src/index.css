@@ -219,6 +219,15 @@
   filter: url(#m1-lap-glow);
 }
 
+/* Fewer samples on a phone. Each one is a point in a path the browser
+   re-renders through a blur every frame, and at the size the beam is drawn
+   there the difference between sixteen and ten is not there to be seen. */
+@media (pointer: coarse) {
+  .lap-marker {
+    --lap-trail-steps: 10;
+  }
+}
+
 .lap-fade-tail {
   stop-color: var(--laser);
   stop-opacity: 0;
