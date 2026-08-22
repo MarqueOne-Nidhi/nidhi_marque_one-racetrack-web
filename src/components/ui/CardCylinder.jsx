@@ -105,6 +105,25 @@ export const scrollTrackHeight = (cardCount) =>
 // arrival feel the auto mode has.
 const SCROLL_EASE = 0.12;
 
+// Under scroll drive one card is on the stage at a time. A neighbour holds
+// full strength until it is a fifth of the way out, and is gone before it
+// would reach the stage edge and peek: at rest the card at the front is the
+// only one drawn. Between the two, the outgoing card fades as it tilts away
+// and the arriving one comes up behind it, which is the change being made
+// visible rather than a cut.
+const SOLO_HOLD = 0.2;
+const SOLO_GONE = 0.9;
+
+/**
+ * How strongly a card is drawn under scroll drive, by its distance from the
+ * front. Exported for the same reason cardPlacement is: the invariant worth
+ * holding, that a settled stack draws exactly one card, is arithmetic and can
+ * be checked without a browser.
+ */
+export function soloOpacity(absOffset) {
+  return 1 - smoothstep(clamp01((absOffset - SOLO_HOLD) / (SOLO_GONE - SOLO_HOLD)));
+}
+
 const smoothstep = (t) => t * t * (3 - 2 * t);
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -342,6 +361,11 @@ const CardCylinder = forwardRef(function CardCylinder(
           ? 'grab'
           : 'pointer';
 
+        // See SOLO_HOLD. Only under scroll drive: the auto cylinder is meant
+        // to read as a cylinder, and the pair peeking past the front card is
+        // most of what says so.
+        if (isScrollDriven) el.style.opacity = soloOpacity(absOffset).toFixed(3);
+
         const { y, z, rot, lead } = cardPlacement(offset, metricsRef.current, spin);
 
         // Tilt belongs to the card at the front. The ones turning away are
@@ -440,9 +464,60 @@ const CardCylinder = forwardRef(function CardCylinder(
     const handleVisibility = () => (document.hidden ? stop() : start());
     document.addEventListener('visibilitychange', handleVisibility);
 
+    // ── Settling ─────────────────────────────────────────────────────────
+    // Stopped between two cards, the section rests showing half of a change:
+    // one card leaving, the next arriving, neither of them the point. A
+    // moment after the scrolling stops it eases to whichever is nearer.
+    //
+    // The page position is the cylinder position under this drive, so the
+    // settle is a scroll rather than an animation of the stack: `scroll-smooth`
+    // on the root does the easing. `settling` keeps the scroll it starts from
+    // arriving back here as a fresh gesture and setting off another.
+    let settleTimer = null;
+    let settling = false;
+
+    const settle = () => {
+      const track = scrollRef?.current;
+      if (!track || cardCount < 2) return;
+
+      const rect = track.getBoundingClientRect();
+      const travel = rect.height - window.innerHeight;
+      // Only while the section is the thing on screen. Above or below it the
+      // reader is on their way somewhere else and must not be caught.
+      if (travel <= 0 || rect.top > 0 || rect.bottom < window.innerHeight) return;
+
+      const p = scrollFraction(rect, window.innerHeight) * (cardCount - 1);
+      const nearest = Math.round(p);
+      // Already there, near enough. Without this the settle fires on every
+      // scroll that ends anywhere near a card and fights the reader for it.
+      if (Math.abs(p - nearest) < 0.02) return;
+
+      settling = true;
+      window.scrollTo({
+        top: rect.top + window.scrollY + (nearest / (cardCount - 1)) * travel,
+        behavior: 'smooth',
+      });
+      window.setTimeout(() => {
+        settling = false;
+      }, 700);
+    };
+
+    const handleScroll = () => {
+      if (settleTimer) clearTimeout(settleTimer);
+      if (settling) return;
+      settleTimer = window.setTimeout(settle, 150);
+    };
+
+    // Not under reduced motion: a page that moves on its own once you stop
+    // pushing it is the thing that setting asks against.
+    const settles = isScrollDriven && !reduced.matches;
+    if (settles) window.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
       observer.disconnect();
       document.removeEventListener('visibilitychange', handleVisibility);
+      if (settles) window.removeEventListener('scroll', handleScroll);
+      if (settleTimer) clearTimeout(settleTimer);
       stop();
     };
   }, [cardCount, isScrollDriven, scrollRef, spin]);
