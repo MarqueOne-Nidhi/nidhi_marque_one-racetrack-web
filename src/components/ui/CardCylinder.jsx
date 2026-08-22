@@ -383,13 +383,17 @@ const CardCylinder = forwardRef(function CardCylinder(
         // See note 3. Past the adjacent pair a card is inert, so it cannot
         // catch a click meant for one in front of it.
         const isFront = absOffset < 0.5;
-        el.style.pointerEvents = absOffset > 1.6 ? 'none' : 'auto';
-        // Under scroll drive nothing here is draggable, and a grab cursor
-        // would promise a gesture that does nothing.
+        // Under scroll drive the cards behind the front one are faded out
+        // (see SOLO_HOLD), so leaving them clickable left a pair of invisible
+        // targets either side of the card being read, each one throwing the
+        // page somewhere else when it was hit. Nothing back there takes a
+        // click now, and the card at the front has never had anything to do
+        // with one. The markers are how a card is chosen under this drive.
+        el.style.pointerEvents = isScrollDriven || absOffset > 1.6 ? 'none' : 'auto';
+        // Under scroll drive nothing here is draggable or clickable, and
+        // either cursor would promise a gesture that does nothing.
         el.style.cursor = isScrollDriven
-          ? isFront
-            ? 'default'
-            : 'pointer'
+          ? 'default'
           : drag.current.active
           ? 'grabbing'
           : isFront
@@ -691,8 +695,11 @@ const CardCylinder = forwardRef(function CardCylinder(
               cardRefs.current[i] = el;
             }}
             // Suppressed after a drag, so releasing the pointer over a card
-            // does not also count as choosing it.
+            // does not also count as choosing it, and under scroll drive
+            // where a card is not something to choose at all: pointerEvents
+            // is off there, and this is the second lock on the same door.
             onClick={() => {
+              if (isScrollDriven) return;
               if (!drag.current.moved) goTo(i);
             }}
             className="absolute inset-0"
