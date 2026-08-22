@@ -168,6 +168,50 @@ describe('the drawer on a phone', () => {
   });
 
   /**
+   * A phone could reach the call to action only by opening the drawer first,
+   * which is two taps to the thing the whole page is asking for. It sits in
+   * the bar now, and stands down while the drawer is open, where the drawer
+   * offers it again at the bottom of the list.
+   */
+  describe('the call to action in the bar', () => {
+    const barCta = () =>
+      [...document.querySelector('nav').querySelectorAll('button')].find((b) =>
+        /contact/i.test(b.textContent)
+      );
+
+    it('is there on a phone, not only inside the drawer', () => {
+      renderNav('/');
+
+      const phoneCta = [...document.querySelector('nav').querySelectorAll('button')].filter(
+        (b) => /contact/i.test(b.textContent) && b.className.includes('md:hidden')
+      );
+
+      expect(phoneCta).toHaveLength(1);
+    });
+
+    it('opens the contact panel', async () => {
+      const user = setupUser();
+      renderNav('/');
+
+      await user.click(barCta());
+
+      expect(await screen.findByRole('dialog')).toBeTruthy();
+    });
+
+    it('stands down while the drawer is open', async () => {
+      const user = setupUser();
+      renderNav('/');
+
+      await user.click(screen.getByRole('button', { name: /toggle navigation/i }));
+
+      const phoneCta = [...document.querySelector('nav').querySelectorAll('button')].filter(
+        (b) => /contact/i.test(b.textContent) && b.className.includes('md:hidden')
+      );
+      expect(phoneCta).toHaveLength(0);
+    });
+  });
+
+  /**
    * The bar takes its colour from the section under it, and the drawer is
    * dark whatever that section is. Opened over a light section, the mark and
    * the close cross were still being drawn in ink, on a black panel: both

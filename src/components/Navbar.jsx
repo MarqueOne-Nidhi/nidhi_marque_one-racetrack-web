@@ -226,32 +226,55 @@ export default function Navbar({ onOpenModal, activeTheme }) {
           </LiquidButton>
         </div>
 
-        {/* The two marks are one control, so they turn into each other rather
-            than cutting: the bars rotate out to the left as the cross rotates
-            in from the right, which is the direction the drawer behind them
-            is travelling. `close-x` adds the quarter turn under a finger that
-            the close mark on both panels has. */}
-        <button
-          onClick={() => setIsMobileMenuOpen((v) => !v)}
-          className={`close-x tap-target md:hidden p-2 bg-transparent border-none cursor-pointer ${barTextColorClass}`}
-          aria-label="Toggle Navigation"
-          aria-expanded={isMobileMenuOpen}
-        >
-          <span className="relative block h-6 w-6">
-            <AnimatePresence initial={false} mode="popLayout">
-              <motion.span
-                key={isMobileMenuOpen ? 'close' : 'open'}
-                initial={{ opacity: 0, rotate: isMobileMenuOpen ? -90 : 90, scale: 0.7 }}
-                animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                exit={{ opacity: 0, rotate: isMobileMenuOpen ? 90 : -90, scale: 0.7 }}
-                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute inset-0 block"
-              >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </motion.span>
-            </AnimatePresence>
-          </span>
-        </button>
+        {/* The right of the bar on a phone: the call to action, then the
+            control that opens the drawer. `md:contents` dissolves this
+            wrapper from md up, where both of its children are hidden anyway
+            and an empty third item would push the desktop bar's
+            space-between around. */}
+        <div className="flex items-center gap-2 md:contents">
+          {/* The same call to action the wide bar carries, which a phone
+              could reach only by opening the drawer first. It stands down
+              while the drawer is open, where the drawer offers it again at
+              the bottom of the list and two of them a screen apart is one
+              too many. */}
+          {!isMobileMenuOpen && (
+            <LiquidButton
+              size="sm"
+              variant={barIsLight ? 'secondary' : 'default'}
+              onClick={onCta}
+              className="md:hidden"
+            >
+              {ctaLabel}
+            </LiquidButton>
+          )}
+
+          {/* The two marks are one control, so they turn into each other rather
+              than cutting: the bars rotate out to the left as the cross rotates
+              in from the right, which is the direction the drawer behind them
+              is travelling. `close-x` adds the quarter turn under a finger that
+              the close mark on both panels has. */}
+          <button
+            onClick={() => setIsMobileMenuOpen((v) => !v)}
+            className={`close-x tap-target md:hidden p-2 bg-transparent border-none cursor-pointer ${barTextColorClass}`}
+            aria-label="Toggle Navigation"
+            aria-expanded={isMobileMenuOpen}
+          >
+            <span className="relative block h-6 w-6">
+              <AnimatePresence initial={false} mode="popLayout">
+                <motion.span
+                  key={isMobileMenuOpen ? 'close' : 'open'}
+                  initial={{ opacity: 0, rotate: isMobileMenuOpen ? -90 : 90, scale: 0.7 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: isMobileMenuOpen ? 90 : -90, scale: 0.7 }}
+                  transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute inset-0 block"
+                >
+                  {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </motion.span>
+              </AnimatePresence>
+            </span>
+          </button>
+        </div>
       </nav>
 
       {/* ── Mobile ─────────────────────────────────────────────────────────
