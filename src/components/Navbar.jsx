@@ -121,18 +121,29 @@ export default function Navbar({ onOpenModal, activeTheme }) {
 
   const isLight = activeTheme === 'light';
 
+  // The bar takes its colour from the section under it, except while the
+  // drawer is open. The drawer is dark whatever that section is, and the bar
+  // stands on top of it, so on a light section the mark and the close cross
+  // were being drawn in ink on a black panel: both simply disappeared.
+  const barIsLight = isLight && !isMobileMenuOpen;
+
   const logoSrc = isLogoHovered
     ? '/logo-red.svg'
-    : isLight
+    : barIsLight
     ? '/logo-black.svg'
     : '/logo-white.svg';
 
   const textColorClass = isLight ? 'text-dark' : 'text-ivory';
+  const barTextColorClass = barIsLight ? 'text-dark' : 'text-ivory';
 
   // No dividing line under the bar. The tint and the blur already separate it
   // from whatever is scrolling underneath, and the hairline was the only hard
   // edge on an otherwise edgeless bar, so it read as a seam across the page.
-  const navBgClass = isScrolled
+  // Nothing of its own while the drawer is open: the drawer is the ground
+  // there, and a tinted strip across the top of it reads as a seam.
+  const navBgClass = isMobileMenuOpen
+    ? 'bg-transparent'
+    : isScrolled
     ? isLight
       ? 'bg-[#F5F1E8]/85 backdrop-blur-md'
       : 'bg-[#090909]/85 backdrop-blur-md'
@@ -222,7 +233,7 @@ export default function Navbar({ onOpenModal, activeTheme }) {
             the close mark on both panels has. */}
         <button
           onClick={() => setIsMobileMenuOpen((v) => !v)}
-          className={`close-x tap-target md:hidden p-2 bg-transparent border-none cursor-pointer ${textColorClass}`}
+          className={`close-x tap-target md:hidden p-2 bg-transparent border-none cursor-pointer ${barTextColorClass}`}
           aria-label="Toggle Navigation"
           aria-expanded={isMobileMenuOpen}
         >
