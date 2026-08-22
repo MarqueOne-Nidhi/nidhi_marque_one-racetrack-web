@@ -7,7 +7,7 @@
 `npm test` never touches the network. `test:live` is the deliberate exception;
 see test_usage.md.
 
-272 tests over the whole submission path, from a visitor typing in a field to a
+277 tests over the whole submission path, from a visitor typing in a field to a
 row landing under the right column heading.
 
 ## The files

@@ -47,6 +47,41 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } f
  */
 
 const PERSPECTIVE = 1350;
+const CARD_RATIO = 1.5925;
+const ROLL_DEG = 3;
+
+/**
+ * How wide the card element should be, for a stage this wide.
+ *
+ * What is painted is not the element. The card at the front stands at Z[0]
+ * under PERSPECTIVE, which magnifies it, and the roll in `layout` widens its
+ * bounding box again, by
+ *
+ *   w·cos3° + h·sin3°,  with h = w / CARD_RATIO
+ *
+ * which is another 3 per cent. Sized on the element alone at 0.74 of the
+ * stage, a 343px column gave a 254px card that painted 372 wide: it ran past
+ * both page gutters on a phone and read as cut off at the screen edge.
+ *
+ * So the width is held to what still lands inside the stage once magnified,
+ * and a shade under that, so the corner the roll throws furthest out is not
+ * resting exactly on the gutter where rounding can shave it. On a desktop the
+ * 340 cap is well under this and nothing there changes.
+ */
+export function cardWidthFor(stageWidth) {
+  const fit = (stageWidth / frontMagnification()) * 0.97;
+  return Math.round(Math.min(340, Math.max(190, Math.min(stageWidth * 0.74, fit))));
+}
+
+/** What a card of that width measures on screen, at the front. */
+export function paintedWidth(cardW) {
+  return cardW * frontMagnification();
+}
+
+function frontMagnification() {
+  const rad = (ROLL_DEG * Math.PI) / 180;
+  return (PERSPECTIVE / (PERSPECTIVE - Z[0])) * (Math.cos(rad) + Math.sin(rad) / CARD_RATIO);
+}
 
 // Waypoints at offset 0 (front), 1 (adjacent), 2 (leaving), 3 (gone).
 // The whole depth of the stack is these two rows.
@@ -267,8 +302,8 @@ const CardCylinder = forwardRef(function CardCylinder(
       const { width, height } = stage.getBoundingClientRect();
       if (!width || !height) return;
 
-      const cardW = Math.round(Math.min(340, Math.max(190, width * 0.74)));
-      const cardH = Math.round(cardW / 1.5925);
+      const cardW = cardWidthFor(width);
+      const cardH = Math.round(cardW / CARD_RATIO);
       const next = { cardW, cardH, stageH: Math.round(height) };
 
       metricsRef.current = next;

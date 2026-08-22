@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { soloOpacity, scrollFraction } from '../src/components/ui/CardCylinder';
+import {
+  soloOpacity,
+  scrollFraction,
+  cardWidthFor,
+  paintedWidth,
+} from '../src/components/ui/CardCylinder';
 
 /**
  * The scroll-driven stack on the Business page shows one card at a time.
@@ -77,5 +82,47 @@ describe('where the settle reads the position from', () => {
     expect(p).toBeCloseTo(1.5, 5);
     // Round is what the settle does with it, and 1.5 has to land somewhere.
     expect(Math.round(p)).toBe(2);
+  });
+});
+
+describe('a card wide enough for its stage, and no wider', () => {
+  /**
+   * The card at the front is magnified by the perspective and its box is
+   * widened again by the roll, so what is painted is half as wide again as
+   * the element. Sized on the element alone it ran past both page gutters on
+   * a phone, and the corner nearest the screen edge read as cut off.
+   */
+  const stages = [281, 300, 343, 364, 400, 500, 660, 900];
+
+  it('paints inside the stage at every width a phone or a desktop gives it', () => {
+    stages.forEach((stage) => {
+      expect(paintedWidth(cardWidthFor(stage))).toBeLessThanOrEqual(stage);
+    });
+  });
+
+  it('leaves a little room rather than resting on the edge', () => {
+    // A 343px column is an iPhone 13 with the page gutters taken off.
+    const painted = paintedWidth(cardWidthFor(343));
+
+    expect(painted).toBeLessThan(343);
+    expect(painted).toBeGreaterThan(343 * 0.9);
+  });
+
+  it('does not shrink the wide layout, where the cap already held', () => {
+    // Half of a twelve column grid at 1440, and anything larger.
+    expect(cardWidthFor(660)).toBe(340);
+    expect(cardWidthFor(900)).toBe(340);
+  });
+
+  it('holds a floor, so a narrow stage still gets a card', () => {
+    expect(cardWidthFor(100)).toBe(190);
+  });
+
+  it('grows with the stage between the floor and the cap', () => {
+    const widths = stages.map(cardWidthFor);
+
+    widths.forEach((w, i) => {
+      if (i > 0) expect(w).toBeGreaterThanOrEqual(widths[i - 1]);
+    });
   });
 });
