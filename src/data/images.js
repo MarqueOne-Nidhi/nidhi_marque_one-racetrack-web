@@ -17,7 +17,7 @@ const IMAGES = {
   circuitTrace: {
     src: '/assets/images/estate/home_circuit_layout_1786898968534.png',
     aspect: '21/9',
-    alt: 'Circuit layout: 5.2 km FIA-graded layout and elevation contours',
+    alt: 'Circuit layout: 5.5 km FIA-graded layout and elevation contours',
     section: 'Circuit',
   },
 
@@ -120,7 +120,7 @@ const IMAGES = {
     src: '/assets/images/estate/home_hospitality_clubhouse_1786900669787.png',
     aspect: '21/9',
     alt: 'The Marque One club grounds',
-    caption: '219 acres: a 5.2 km FIA-graded circuit, a 1000-metre drag strip integrated into the lap, and the clubhouse above them.',
+    caption: '300+ acres: a 5.5 km FIA-graded circuit, a 1000-metre drag strip integrated into the lap, and the clubhouse above them.',
     section: 'About',
   },
 };

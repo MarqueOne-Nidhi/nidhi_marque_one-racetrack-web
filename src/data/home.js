@@ -36,7 +36,7 @@ export const DEFINITION = {
   heading: 'Marque.One',
   subheading: 'Motorsport club',
   body: [
-    'A motorsport club across 219 acres: a circuit, a drag strip, an off-road course, a skid pan, a wet handling track, and a clubhouse built to make a weekend of it.',
+    'A motorsport club across 300+ acres: a circuit, a drag strip, an off-road course, a skid pan, a wet handling track, and a clubhouse built to make a weekend of it.',
     'You do not need a membership, a licence or a fast car. You need a day, and something you want to do with it.',
     'Members hold standing access. Everyone else books.',
   ],
@@ -270,7 +270,7 @@ export const FAQ = {
         { q: 'Do I need a competition licence?', a: 'No. A valid driving licence is enough.' },
         { q: 'What car do I need?', a: 'A road-legal car in sound mechanical condition. Not a fast one. A normal car driven properly teaches more than a fast car driven badly.' },
         { q: 'Is instruction available?', a: 'There is a motorsport academy at the club.' },
-        { q: 'How long is the circuit?', a: '5.2 kilometres, with a 1000-metre drag strip integrated into the lap and ±25 metres of elevation.' },
+        { q: 'How long is the circuit?', a: '5.5 kilometres, with a 1000-metre drag strip integrated into the lap and ±25 metres of elevation.' },
         { q: 'What else is there besides the circuit?', a: 'An off-road and rock-crawl course, a skid pan, a kick plate and a wet handling track. The drag strip runs on the circuit itself.' },
         { q: 'Can I keep my car here?', a: 'Secure, temperature-controlled storage is on site.' },
         { q: 'Is there medical cover?', a: 'A medical facility operates at the club, staffed whenever the circuit is live.' },
