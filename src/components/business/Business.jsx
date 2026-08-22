@@ -62,9 +62,12 @@ export default function Business() {
   const track = useRef(null);
   const cylinder = useRef(null);
 
+  // Only reduced motion falls back to the flat grid now. A phone used to as
+  // well, which left the section reading as four blocks in a list there and
+  // as a stack of cards everywhere else: no eyebrow, no count, no card at the
+  // front. It takes the same cards and the same scroll drive at every width.
   const reduced = useMatches('(prefers-reduced-motion: reduce)');
-  const narrow = useMatches('(max-width: 767px)');
-  const asGrid = reduced || narrow;
+  const asGrid = reduced;
 
   const activeCard = CARDS[active];
 
@@ -156,12 +159,17 @@ export default function Business() {
           ))}
 
           <div className="sticky top-0 h-[100svh] overflow-hidden">
+            {/* The pin holds one screen, so on a phone the stack has to fit
+                inside it: the label, the cards, what the front one is, and
+                the markers. The bar is fixed and 76px tall and this section
+                is pinned to the top of the screen, so the top padding clears
+                it rather than letting the label sit underneath. */}
             <Section
               surface="dark"
               rhythm="none"
-              className="h-full flex items-center py-[clamp(4rem,10vh,8rem)]"
+              className="h-full flex items-center max-md:pb-4 max-md:pt-[calc(76px+0.5rem)] md:py-[clamp(4rem,10vh,8rem)]"
             >
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-col items-center w-full">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-col items-center w-full">
                 <CardCylinder
                   ref={cylinder}
                   cards={CARDS}
@@ -172,20 +180,26 @@ export default function Business() {
                   spin="up"
                   scrollRef={track}
                   onActiveChange={setActive}
-                  className="md:col-span-6 h-[clamp(320px,46vh,460px)] md:h-[clamp(440px,68vh,760px)]"
+                  className="md:col-span-6 h-[clamp(150px,32svh,240px)] md:h-[clamp(440px,68vh,760px)]"
                 />
 
-                <div className="md:col-span-5 md:col-start-8">
+                {/* `contents` on a phone, so these two join the section's own
+                    grid and can be ordered around the cards: what the section
+                    is goes above them, and what the card at the front is goes
+                    below. The same arrangement as Hospitality on the home
+                    page. From md up this is a column again. */}
+                <div className="contents md:block md:col-span-5 md:col-start-8">
                   {/* The header has scrolled away by the time the pin starts,
                       so the section says what it is on its own. The wording is
                       the navbar's own label for this group. */}
-                  <span className="block text-[0.7rem] tracking-ultra uppercase ink-faint mb-3">
+                  <span className="order-first block text-[0.7rem] tracking-ultra uppercase ink-faint mb-3 md:order-none">
                     WHAT WE HOST
                   </span>
 
+                  <div>
                   {/* Held to a fixed height so the longest block cannot shove
                       the row of markers down and up as the cylinder turns. */}
-                  <div className="min-h-[188px]">
+                  <div className="min-h-[150px] md:min-h-[188px]">
                     <span className="block text-[0.6rem] tracking-ultra uppercase ink-faint mb-3">
                       {String(active + 1).padStart(2, '0')} /{' '}
                       {String(CARDS.length).padStart(2, '0')}
@@ -213,12 +227,17 @@ export default function Business() {
                     </motion.p>
                   </div>
 
+                  {/* On a screen too short to hold the label, the cards and
+                      what the front one is, the markers are what goes: the
+                      cards advance by scrolling at every width now, so they
+                      are a shortcut rather than the only way through. */}
                   <CylinderMarkers
                     cards={CARDS}
                     active={active}
                     onSelect={(i) => cylinder.current?.goTo(i)}
-                    className="mt-8"
+                    className="mt-6 max-md:[@media(max-height:620px)]:hidden md:mt-8"
                   />
+                  </div>
                 </div>
               </div>
             </Section>

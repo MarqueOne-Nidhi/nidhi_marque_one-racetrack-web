@@ -47,6 +47,41 @@ import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } f
  */
 
 const PERSPECTIVE = 1350;
+const CARD_RATIO = 1.5925;
+const ROLL_DEG = 3;
+
+/**
+ * How wide the card element should be, for a stage this wide.
+ *
+ * What is painted is not the element. The card at the front stands at Z[0]
+ * under PERSPECTIVE, which magnifies it, and the roll in `layout` widens its
+ * bounding box again, by
+ *
+ *   w·cos3° + h·sin3°,  with h = w / CARD_RATIO
+ *
+ * which is another 3 per cent. Sized on the element alone at 0.74 of the
+ * stage, a 343px column gave a 254px card that painted 372 wide: it ran past
+ * both page gutters on a phone and read as cut off at the screen edge.
+ *
+ * So the width is held to what still lands inside the stage once magnified,
+ * and a shade under that, so the corner the roll throws furthest out is not
+ * resting exactly on the gutter where rounding can shave it. On a desktop the
+ * 340 cap is well under this and nothing there changes.
+ */
+export function cardWidthFor(stageWidth) {
+  const fit = (stageWidth / frontMagnification()) * 0.97;
+  return Math.round(Math.min(340, Math.max(190, Math.min(stageWidth * 0.74, fit))));
+}
+
+/** What a card of that width measures on screen, at the front. */
+export function paintedWidth(cardW) {
+  return cardW * frontMagnification();
+}
+
+function frontMagnification() {
+  const rad = (ROLL_DEG * Math.PI) / 180;
+  return (PERSPECTIVE / (PERSPECTIVE - Z[0])) * (Math.cos(rad) + Math.sin(rad) / CARD_RATIO);
+}
 
 // Waypoints at offset 0 (front), 1 (adjacent), 2 (leaving), 3 (gone).
 // The whole depth of the stack is these two rows.
@@ -104,6 +139,25 @@ export const scrollTrackHeight = (cardCount) =>
 // to the cards. A share of the remaining distance each frame keeps the same
 // arrival feel the auto mode has.
 const SCROLL_EASE = 0.12;
+
+// Under scroll drive one card is on the stage at a time. A neighbour holds
+// full strength until it is a fifth of the way out, and is gone before it
+// would reach the stage edge and peek: at rest the card at the front is the
+// only one drawn. Between the two, the outgoing card fades as it tilts away
+// and the arriving one comes up behind it, which is the change being made
+// visible rather than a cut.
+const SOLO_HOLD = 0.2;
+const SOLO_GONE = 0.9;
+
+/**
+ * How strongly a card is drawn under scroll drive, by its distance from the
+ * front. Exported for the same reason cardPlacement is: the invariant worth
+ * holding, that a settled stack draws exactly one card, is arithmetic and can
+ * be checked without a browser.
+ */
+export function soloOpacity(absOffset) {
+  return 1 - smoothstep(clamp01((absOffset - SOLO_HOLD) / (SOLO_GONE - SOLO_HOLD)));
+}
 
 const smoothstep = (t) => t * t * (3 - 2 * t);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -248,8 +302,8 @@ const CardCylinder = forwardRef(function CardCylinder(
       const { width, height } = stage.getBoundingClientRect();
       if (!width || !height) return;
 
-      const cardW = Math.round(Math.min(340, Math.max(190, width * 0.74)));
-      const cardH = Math.round(cardW / 1.5925);
+      const cardW = cardWidthFor(width);
+      const cardH = Math.round(cardW / CARD_RATIO);
       const next = { cardW, cardH, stageH: Math.round(height) };
 
       metricsRef.current = next;
@@ -329,18 +383,27 @@ const CardCylinder = forwardRef(function CardCylinder(
         // See note 3. Past the adjacent pair a card is inert, so it cannot
         // catch a click meant for one in front of it.
         const isFront = absOffset < 0.5;
-        el.style.pointerEvents = absOffset > 1.6 ? 'none' : 'auto';
-        // Under scroll drive nothing here is draggable, and a grab cursor
-        // would promise a gesture that does nothing.
+        // Under scroll drive the cards behind the front one are faded out
+        // (see SOLO_HOLD), so leaving them clickable left a pair of invisible
+        // targets either side of the card being read, each one throwing the
+        // page somewhere else when it was hit. Nothing back there takes a
+        // click now, and the card at the front has never had anything to do
+        // with one. The markers are how a card is chosen under this drive.
+        el.style.pointerEvents = isScrollDriven || absOffset > 1.6 ? 'none' : 'auto';
+        // Under scroll drive nothing here is draggable or clickable, and
+        // either cursor would promise a gesture that does nothing.
         el.style.cursor = isScrollDriven
-          ? isFront
-            ? 'default'
-            : 'pointer'
+          ? 'default'
           : drag.current.active
           ? 'grabbing'
           : isFront
           ? 'grab'
           : 'pointer';
+
+        // See SOLO_HOLD. Only under scroll drive: the auto cylinder is meant
+        // to read as a cylinder, and the pair peeking past the front card is
+        // most of what says so.
+        if (isScrollDriven) el.style.opacity = soloOpacity(absOffset).toFixed(3);
 
         const { y, z, rot, lead } = cardPlacement(offset, metricsRef.current, spin);
 
@@ -440,9 +503,60 @@ const CardCylinder = forwardRef(function CardCylinder(
     const handleVisibility = () => (document.hidden ? stop() : start());
     document.addEventListener('visibilitychange', handleVisibility);
 
+    // ── Settling ─────────────────────────────────────────────────────────
+    // Stopped between two cards, the section rests showing half of a change:
+    // one card leaving, the next arriving, neither of them the point. A
+    // moment after the scrolling stops it eases to whichever is nearer.
+    //
+    // The page position is the cylinder position under this drive, so the
+    // settle is a scroll rather than an animation of the stack: `scroll-smooth`
+    // on the root does the easing. `settling` keeps the scroll it starts from
+    // arriving back here as a fresh gesture and setting off another.
+    let settleTimer = null;
+    let settling = false;
+
+    const settle = () => {
+      const track = scrollRef?.current;
+      if (!track || cardCount < 2) return;
+
+      const rect = track.getBoundingClientRect();
+      const travel = rect.height - window.innerHeight;
+      // Only while the section is the thing on screen. Above or below it the
+      // reader is on their way somewhere else and must not be caught.
+      if (travel <= 0 || rect.top > 0 || rect.bottom < window.innerHeight) return;
+
+      const p = scrollFraction(rect, window.innerHeight) * (cardCount - 1);
+      const nearest = Math.round(p);
+      // Already there, near enough. Without this the settle fires on every
+      // scroll that ends anywhere near a card and fights the reader for it.
+      if (Math.abs(p - nearest) < 0.02) return;
+
+      settling = true;
+      window.scrollTo({
+        top: rect.top + window.scrollY + (nearest / (cardCount - 1)) * travel,
+        behavior: 'smooth',
+      });
+      window.setTimeout(() => {
+        settling = false;
+      }, 700);
+    };
+
+    const handleScroll = () => {
+      if (settleTimer) clearTimeout(settleTimer);
+      if (settling) return;
+      settleTimer = window.setTimeout(settle, 150);
+    };
+
+    // Not under reduced motion: a page that moves on its own once you stop
+    // pushing it is the thing that setting asks against.
+    const settles = isScrollDriven && !reduced.matches;
+    if (settles) window.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
       observer.disconnect();
       document.removeEventListener('visibilitychange', handleVisibility);
+      if (settles) window.removeEventListener('scroll', handleScroll);
+      if (settleTimer) clearTimeout(settleTimer);
       stop();
     };
   }, [cardCount, isScrollDriven, scrollRef, spin]);
@@ -581,8 +695,11 @@ const CardCylinder = forwardRef(function CardCylinder(
               cardRefs.current[i] = el;
             }}
             // Suppressed after a drag, so releasing the pointer over a card
-            // does not also count as choosing it.
+            // does not also count as choosing it, and under scroll drive
+            // where a card is not something to choose at all: pointerEvents
+            // is off there, and this is the second lock on the same door.
             onClick={() => {
+              if (isScrollDriven) return;
               if (!drag.current.moved) goTo(i);
             }}
             className="absolute inset-0"

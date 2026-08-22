@@ -13,7 +13,7 @@ export default function About() {
           Marque.<span style={{ color: '#cc0000' }}>One</span> Motorsports Club
         </>
       ),
-      desc: 'The 219-acre motorsport club. Circuit, drag strip, off-road course, skid pan, wet handling track, clubhouse, rooms, and storage.',
+      desc: 'The 300+ acre motorsport club. Circuit, drag strip, off-road course, skid pan, wet handling track, clubhouse, rooms, and storage.',
       link: '/',
     },
     {
@@ -48,16 +48,6 @@ export default function About() {
           <span style={{ color: '#cc0000' }}>One</span> Motors. Spearheading the design and execution of India’s premier private motorsport destination.
         </>
       ),
-    },
-    {
-      name: 'Shana Parmeshwar',
-      role: 'Director & Co-Founder',
-      bio: 'Collector, driver, and motorsport advocate. Bringing global automotive experience and lifestyle curation to the club’s hospitality and community.',
-    },
-    {
-      name: 'M. G. Chakravarthi Rajan',
-      role: 'Founder, Nidhi Group',
-      bio: 'Visionary behind Anuadi Constructions (est. 1991) and the Nidhi Group, providing the foundational civil engineering and land development heritage powering the 219-acre club.',
     },
   ];
 
@@ -103,7 +93,7 @@ export default function About() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="font-sans text-[clamp(0.95rem,1.4vw,1.15rem)] font-light ink-muted max-w-measure leading-relaxed"
         >
-          Marque.<span style={{ color: '#cc0000' }}>One</span> was founded to create spaces and services for people who take driving seriously. What began as a specialist performance workshop has grown into a 219-acre motorsport sanctuary.
+          Marque.<span style={{ color: '#cc0000' }}>One</span> was founded to create spaces and services for people who take driving seriously. What began as a specialist performance workshop has grown into a 300+ acre motorsport sanctuary.
         </motion.p>
       </Section>
 
