@@ -23,7 +23,7 @@ export default function TheHook() {
         </p>
         <SectionLink
           to="/club#club"
-          className="inline-flex items-center gap-2 text-[0.82rem] tracking-wider uppercase text-dark hover:translate-x-1 transition-transform group"
+          className="tap-target inline-flex items-center gap-2 text-[0.82rem] tracking-wider uppercase text-dark hover:translate-x-1 transition-transform group"
         >
           <span>See what's inside</span>
           <span className="group-hover:translate-x-1 transition-transform">→</span>

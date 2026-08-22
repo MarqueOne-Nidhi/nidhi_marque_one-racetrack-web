@@ -180,7 +180,7 @@ export default function HomeHero() {
                   <button
                     key={video.src}
                     onClick={() => setActiveVideoIndex(idx)}
-                    className="group relative cursor-pointer border-none bg-transparent p-1 focus:outline-none"
+                    className="tap-target group relative cursor-pointer border-none bg-transparent p-1 focus:outline-none"
                     aria-label={`Switch to video: ${video.label}`}
                   >
                     <div

@@ -105,6 +105,69 @@ describe('the pages are reachable from the bar', () => {
   );
 });
 
+describe('the drawer on a phone', () => {
+  /**
+   * The drawer covers the page from the bar down, and the page under it used
+   * to go on scrolling: open the menu, drag it, close it, and the page is
+   * somewhere else than where it was left. See src/lib/scrollLock.
+   */
+  const openDrawer = async (user) => {
+    renderNav('/');
+    await user.click(screen.getByRole('button', { name: /toggle navigation/i }));
+  };
+
+  it('holds the page still while it is open', async () => {
+    const user = setupUser();
+    await openDrawer(user);
+
+    expect(document.body.style.position).toBe('fixed');
+    expect(document.body.style.overflow).toBe('hidden');
+  });
+
+  it('gives the page back when it closes', async () => {
+    const user = setupUser();
+    await openDrawer(user);
+
+    await user.click(screen.getByRole('button', { name: /toggle navigation/i }));
+
+    await waitFor(() => expect(document.body.style.position).not.toBe('fixed'));
+  });
+
+  it('closes on Escape', async () => {
+    const user = setupUser();
+    await openDrawer(user);
+
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => expect(document.body.style.position).not.toBe('fixed'));
+  });
+
+  /**
+   * The drawer used to start below the bar and be painted at 95% on a blur,
+   * so the page showed through it: on the home page the red mark behind the
+   * bar sat in the middle of the open menu, cut in half by the panel's top
+   * edge. It covers the screen outright now, and the bar draws over it.
+   */
+  it('covers the page rather than starting under the bar', async () => {
+    const user = setupUser();
+    await openDrawer(user);
+
+    const panel = document.querySelector('.z-40');
+    expect(panel).not.toBeNull();
+    expect(panel.className).toContain('inset-0');
+    expect(panel.className).not.toContain('top-[76px]');
+  });
+
+  it('is painted solid, so nothing shows through it', async () => {
+    const user = setupUser();
+    await openDrawer(user);
+
+    const panel = document.querySelector('.z-40');
+    expect(panel.className).toContain('bg-dark');
+    expect(panel.className).not.toContain('bg-dark/');
+  });
+});
+
 describe('a section link leaves nothing in the address bar', () => {
   const cases = withPanel.flatMap((link) =>
     sectionsOf(link).map((item) => [link.label, item.label, item.path])

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
 import LiquidButton from './ui/LiquidButton';
 import PaperSurface from './ui/PaperSurface';
 import { submitToSheet } from '../lib/submitToSheet';
+import { holdScroll } from '../lib/scrollLock';
 
 export default function MembershipModal({ isOpen, source = '', onClose }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -16,6 +17,27 @@ export default function MembershipModal({ isOpen, source = '', onClose }) {
     vehicle: '',
     code: '',
   });
+
+  // The page underneath does not scroll while the panel is open. The panel
+  // has its own scroll for a form taller than the screen, and two scrollable
+  // planes at once is how a reader loses the page they were reading. Escape
+  // closes it, as it does the contact panel: the two are the same object and
+  // only one of them used to answer the keyboard.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleKey = (e) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKey);
+
+    const release = holdScroll();
+
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      release();
+    };
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -233,7 +255,7 @@ export default function MembershipModal({ isOpen, source = '', onClose }) {
                 content, and above it in the stack. */}
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 z-20 p-2 bg-transparent border-none cursor-pointer opacity-50 hover:opacity-100 transition-opacity"
+              className="close-x tap-target absolute top-4 right-4 z-20 p-2 bg-transparent border-none cursor-pointer opacity-50 hover:opacity-100"
               style={{ color: '#F2EDE3' }}
               aria-label="Close modal"
             >

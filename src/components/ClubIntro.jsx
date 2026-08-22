@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { holdScroll } from '../lib/scrollLock';
 
 /**
  * ONE.CLUB — Opening Brand Signature
@@ -80,8 +81,10 @@ export default function ClubIntro({ onComplete }) {
       return;
     }
 
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    // Counted and shared, in lib/scrollLock: the contact and membership
+    // panels open over this intro while it is still running, and whichever
+    // finishes first must not hand the page back under the other one.
+    const release = holdScroll();
 
     let cancelled = false;
     let timers = [];
@@ -89,7 +92,7 @@ export default function ClubIntro({ onComplete }) {
     const finish = () => {
       sessionStorage.setItem('oneClubIntroSeen', 'true');
       setPhase('done');
-      document.body.style.overflow = originalOverflow;
+      release();
       onComplete?.();
     };
 
@@ -101,7 +104,7 @@ export default function ClubIntro({ onComplete }) {
       timers = [setTimeout(() => setPhase('exiting'), 1400), setTimeout(finish, 2000)];
       return () => {
         timers.forEach(clearTimeout);
-        document.body.style.overflow = originalOverflow;
+        release();
       };
     }
 
@@ -128,7 +131,7 @@ export default function ClubIntro({ onComplete }) {
     return () => {
       cancelled = true;
       timers.forEach(clearTimeout);
-      document.body.style.overflow = originalOverflow;
+      release();
     };
   }, [onComplete]);
 

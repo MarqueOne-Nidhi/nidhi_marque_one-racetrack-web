@@ -45,6 +45,12 @@ const LAP_DUR = 16000; // one lap, in ms. Lower = faster.
 const DIRECTION = -1;
 const LUT_STEPS = 1800; // resolution of the path lookup table
 
+// How long the line takes to draw itself, and how far through that the marker
+// is let out. The beam catching up with the pen is the point of the sequence:
+// the circuit is drawn, and then it is driven.
+const DRAW_DUR = 2000;
+const MARKER_IN = 0.7;
+
 // Closed path of the circuit. Swap this `d` for any closed path and everything
 // else adapts — every length here is measured, never hardcoded.
 // Traced from the surveyed layout rather than drawn by hand: the aerial was
@@ -59,8 +65,17 @@ const CIRCUIT_D =
 // hasn't run or motion is reduced, so it never renders at 0,0.
 const START = { x: 621.6, y: 21.6 };
 
-export default function CircuitTrace({ className = '', label }) {
+/**
+ * `drawOnView` makes the line draw itself the first time it is scrolled to,
+ * rather than being there already. It is asked for by the phone layout of
+ * home/Circuit, where the drawing is the section rather than an illustration
+ * beside it and so has an entrance to make. Off by default: on the wide
+ * layout the circuit is one of two columns and drawing it would pull the eye
+ * away from the prose beside it.
+ */
+export default function CircuitTrace({ className = '', label, drawOnView = false }) {
   const figureRef = useRef(null);
+  const lineRef = useRef(null);
   const pathRef = useRef(null);
   const markerRef = useRef(null);
   const trailRef = useRef(null);
@@ -70,6 +85,7 @@ export default function CircuitTrace({ className = '', label }) {
   useEffect(() => {
     const figure = figureRef.current;
     const path = pathRef.current;
+    const line = lineRef.current;
     const marker = markerRef.current;
     const trail = trailRef.current;
     const dot = dotRef.current;
@@ -111,6 +127,35 @@ export default function CircuitTrace({ className = '', label }) {
       const p0 = lut[i0];
       const p1 = lut[i1];
       return [p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t];
+    };
+
+    // Rolled up from the far end. stroke-dasharray and stroke-dashoffset are
+    // inherited properties, so setting them on the <use> reaches the path it
+    // clones. The marker is held back until the pen is most of the way round:
+    // a beam lapping a circuit that is not drawn yet reads as a bug.
+    // Not `draw`: that name is taken by the marker's frame function below,
+    // and this runs above it in the same scope.
+    const drawsItself = drawOnView && !reduce;
+    if (drawsItself) {
+      line.style.strokeDasharray = `${lapLen}`;
+      line.style.strokeDashoffset = `${lapLen}`;
+      marker.style.opacity = '0';
+    }
+
+    let drawn = false;
+    let markerTimer = null;
+    const startDrawing = () => {
+      if (drawn) return;
+      drawn = true;
+      // A frame later, so the browser has the undrawn state to animate from.
+      requestAnimationFrame(() => {
+        line.style.transition = `stroke-dashoffset ${DRAW_DUR}ms cubic-bezier(0.33, 0, 0.15, 1)`;
+        line.style.strokeDashoffset = '0';
+      });
+      markerTimer = setTimeout(() => {
+        marker.style.transition = 'opacity 700ms ease';
+        marker.style.opacity = '';
+      }, DRAW_DUR * MARKER_IN);
     };
 
     let visible = false;
@@ -162,6 +207,7 @@ export default function CircuitTrace({ className = '', label }) {
       (entries) => {
         entries.forEach((e) => {
           visible = e.isIntersecting;
+          if (visible && drawsItself) startDrawing();
           if (visible && !reduce && raf === null) {
             raf = requestAnimationFrame(draw);
           } else if (!visible && raf !== null) {
@@ -181,8 +227,9 @@ export default function CircuitTrace({ className = '', label }) {
     return () => {
       io.disconnect();
       if (raf !== null) cancelAnimationFrame(raf);
+      if (markerTimer !== null) clearTimeout(markerTimer);
     };
-  }, []);
+  }, [drawOnView]);
 
   return (
     <figure ref={figureRef} className={`circuit-figure ${className}`.trim()}>
@@ -229,7 +276,13 @@ export default function CircuitTrace({ className = '', label }) {
             0.42, so it read as a dark scar sliding around the layout rather
             than as a highlight. The laser already says which way the circuit
             runs, and it says it in the brand colour. */}
-        <use href={`#${TRACE_ID}`} className="circuit-trace" strokeWidth="7" opacity="0.42" />
+        <use
+          ref={lineRef}
+          href={`#${TRACE_ID}`}
+          className="circuit-trace"
+          strokeWidth="7"
+          opacity="0.42"
+        />
 
         {/* One filter on the group covers dot and trail together, so they glow
             as a single emitted object — and the filter region stays the size

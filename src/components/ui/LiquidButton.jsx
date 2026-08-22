@@ -52,7 +52,7 @@ export default function LiquidButton({
       whileTap={{ scale: tapScale }}
       variants={{ rest: { scale: 1 }, hover: { scale: hoverScale } }}
       onClick={onClick}
-      className={`relative overflow-hidden rounded-none font-sans tracking-widest uppercase font-normal transition-colors duration-300 group inline-flex items-center justify-center gap-2 cursor-pointer ${sizeStyles[size] || sizeStyles.default} ${variantStyles[variant] || variantStyles.default} ${className}`}
+      className={`tap-height relative overflow-hidden rounded-none font-sans tracking-widest uppercase font-normal transition-colors duration-300 group inline-flex items-center justify-center gap-2 cursor-pointer ${sizeStyles[size] || sizeStyles.default} ${variantStyles[variant] || variantStyles.default} ${className}`}
       {...props}
     >
       {/* Animated Liquid Background Fill (inherits hover state from the button) */}

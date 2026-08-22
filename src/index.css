@@ -179,6 +179,33 @@
   height: 100%;
 }
 
+/* On a phone the drawing is not an illustration beside the text but the
+   ground the figures stand on, so it fills a box that home/Circuit.jsx has
+   already cut to the drawing's proportions. The rule above sizes by width,
+   which on a 390px screen makes the figure 517px tall and pushes the bottom
+   of the section off the screen; this wins on specificity, and only where it
+   is asked for. */
+.circuit-figure.circuit-figure--fill {
+  height: 100%;
+  width: 100%;
+  max-width: none;
+}
+
+/* The box that drawing stands in on a phone, and that home/Circuit.jsx places
+   the four figures on in percentages.
+
+   It is the largest 663:1000 rectangle that fits both ways. Height alone
+   would derive a width wider than the page gutters on a tall phone, and the
+   drawing would be cropped or letterboxed — and a letterboxed drawing no
+   longer sits where the figures were placed. Width alone would run the
+   section off the bottom of a short one. The second term is the height at
+   which the width is exactly the page: 6vw is the gutter, from
+   tailwind.config.js. */
+.circuit-stage {
+  height: min(100%, calc((100vw - 12vw) * 1000 / 663));
+  aspect-ratio: 663 / 1000;
+}
+
 .circuit-trace {
   fill: none;
   stroke: currentColor;
@@ -332,4 +359,93 @@
   -webkit-text-fill-color: var(--ink);
   -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
   caret-color: var(--ink);
+}
+
+/* ─── The close mark on the two form panels ────────────────────────────────
+   ContactModal and MembershipModal both hang an X outside the sheet, and it
+   is the last thing a visitor touches before the panel goes. Hover alone gave
+   it nothing to say under the finger, where hover does not exist at all.
+
+   Pressed, it turns a quarter and shrinks. An X has four-fold symmetry, so
+   90 degrees lands it back on itself: the mark reads as spinning in place
+   rather than as arriving somewhere new, and it does not matter that the
+   release is cut short by the panel closing over it. Opacity is carried here
+   too rather than by a Tailwind utility, because one `transition` shorthand
+   has to hold both properties or the second declaration drops the first. */
+.close-x {
+  transition:
+    opacity 200ms ease,
+    color 200ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.close-x:active {
+  transform: rotate(90deg) scale(0.82);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .close-x {
+    transition:
+      opacity 200ms ease,
+      color 200ms ease;
+  }
+
+  .close-x:active {
+    transform: none;
+  }
+}
+
+/* ─── A thumb-sized hit area, without moving anything ──────────────────────
+   Several marks on this site are deliberately small: the 4px progress bar
+   under the hero reel, a 13px social glyph, a row of dots. They are the
+   right size to look at and the wrong size to hit, a fingertip being about
+   44px across, which is what both Apple and Google ask a target to be.
+
+   Growing the elements would redraw the pages, so the target is a pseudo
+   element instead: centred on the mark and stretched to 44px in whichever
+   direction falls short. Nothing moves and nothing is drawn, and the mark
+   keeps the size it was designed at.
+
+   `:where` on the position, so an element that is already absolutely placed
+   keeps its own — the close mark on both panels is one of those. It has no
+   effect on a target inside `overflow: hidden`, which clips the box back to
+   the element; those need a real minimum height instead, as LiquidButton has.
+
+   Only on touch. A mouse hits what it is pointing at, and on a desktop these
+   boxes would overlap each other for nothing. */
+@media (pointer: coarse) {
+  :where(.tap-target) {
+    position: relative;
+  }
+
+  .tap-target::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    min-width: 44px;
+    min-height: 44px;
+    transform: translate(-50%, -50%);
+  }
+
+  /* For a target that clips its own pseudo element. It grows the button
+     rather than only its hit area, which on a phone is the right trade: a
+     call to action 28px tall is a small thing to ask a thumb to find. */
+  .tap-height {
+    min-height: 44px;
+  }
+}
+
+/* Safari on iOS zooms the page in when a field smaller than 16px takes
+   focus, and does not zoom back out when the field is done with. Every
+   enquiry on this site is typed into one of these, so the visitor is left
+   reading a page one and a half times too wide for the rest of the visit.
+   The fields are set at 0.95rem, which is 15.2px, and 16px is the threshold.
+   Only on touch: the desktop setting is the designed one. */
+@media (pointer: coarse) {
+  .paper-field {
+    font-size: 16px;
+  }
 }
