@@ -2,6 +2,7 @@ import React from 'react';
 import { Section } from './ui/Section';
 import { motion } from 'framer-motion';
 import BlurFadeText from './ui/BlurFadeText';
+import SectionLink from './ui/SectionLink';
 
 export default function TheHook() {
   return (
@@ -20,13 +21,13 @@ export default function TheHook() {
         <p className="font-serif text-[clamp(1.6rem,3.5vw,2.8rem)] font-light opacity-80 mt-4 mb-6">
           Storage for the car, a circuit to use it on, and a room above both.
         </p>
-        <a
-          href="#club"
-          className="inline-flex items-center gap-2 text-[0.82rem] tracking-wider uppercase text-dark hover:translate-x-1 transition-transform group"
+        <SectionLink
+          to="/club#club"
+          className="tap-target inline-flex items-center gap-2 text-[0.82rem] tracking-wider uppercase text-dark hover:translate-x-1 transition-transform group"
         >
           <span>See what's inside</span>
           <span className="group-hover:translate-x-1 transition-transform">→</span>
-        </a>
+        </SectionLink>
       </div>
 
       <motion.div

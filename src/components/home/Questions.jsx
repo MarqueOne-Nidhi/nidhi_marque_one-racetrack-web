@@ -115,7 +115,7 @@ export default function Questions({
                     >
                       <button
                         onClick={() => toggleItem(key)}
-                        className="w-full flex items-center justify-between gap-4 text-left bg-transparent border-none cursor-pointer py-1 group"
+                        className="tap-target w-full flex items-center justify-between gap-4 text-left bg-transparent border-none cursor-pointer py-1 group"
                         aria-expanded={isOpen}
                       >
                         <span className="font-serif text-[clamp(1.1rem,1.5vw,1.35rem)] font-light group-hover:text-brand transition-colors">

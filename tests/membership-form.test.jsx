@@ -44,6 +44,31 @@ describe('the panel', () => {
     expect(screen.queryByPlaceholderText('Your name')).toBeNull();
   });
 
+  it('does not leave the page scrollable underneath it', () => {
+    open();
+
+    expect(document.body.style.overflow).toBe('hidden');
+  });
+
+  it('gives back the scroll when it closes', async () => {
+    const { rerender } = render(<MembershipModal isOpen onClose={() => {}} />);
+    expect(document.body.style.overflow).toBe('hidden');
+
+    rerender(<MembershipModal isOpen={false} onClose={() => {}} />);
+
+    await waitFor(() => expect(document.body.style.overflow).not.toBe('hidden'));
+  });
+
+  it('closes on Escape, as the contact panel does', async () => {
+    const user = setupUser();
+    const onClose = vi.fn();
+    render(<MembershipModal isOpen onClose={onClose} />);
+
+    await user.keyboard('{Escape}');
+
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it('asks for the five things the club needs', () => {
     open();
 

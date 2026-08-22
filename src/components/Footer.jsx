@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Mail } from 'lucide-react';
 import { surfaceProps } from './ui/Section';
 import { useContactModal } from './ContactModal';
+import LiquidButton from './ui/LiquidButton';
 
 const EXPLORE = [
   { label: 'Home', path: '/' },
@@ -94,7 +95,8 @@ export default function Footer({ onOpenModal }) {
     >
       {/* Main content */}
       <div className="relative z-10 max-w-frame mx-auto px-gutter pt-[7vh] pb-[4vh]">
-        <div className="flex flex-col md:flex-row gap-14 md:gap-0 justify-between">
+        {/* DESKTOP FOOTER (Untouched for md and above) */}
+        <div className="hidden md:flex flex-row gap-0 justify-between">
           {/* LEFT: Branding */}
           <div className="flex flex-col items-center gap-5 text-center">
             <Link
@@ -122,7 +124,7 @@ export default function Footer({ onOpenModal }) {
                   aria-label={label}
                   target={href.startsWith('http') ? '_blank' : undefined}
                   rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className="w-8 h-8 border border-ivory/30 flex items-center justify-center text-ivory/70 hover:text-ivory hover:border-ivory/70 transition-all duration-200"
+                  className="tap-target w-8 h-8 border border-ivory/30 flex items-center justify-center text-ivory/70 hover:text-ivory hover:border-ivory/70 transition-all duration-200"
                 >
                   <Icon size={13} />
                 </a>
@@ -167,7 +169,7 @@ export default function Footer({ onOpenModal }) {
                 ) : (
                   <button
                     key={label}
-                    onClick={contact ? () => openContact('Drive', 'Footer') : onOpenModal}
+                    onClick={contact ? () => openContact('Drive', 'Footer') : () => onOpenModal('Footer')}
                     className="text-[0.82rem] font-light text-ivory/75 hover:text-ivory transition-colors cursor-pointer bg-transparent border-none text-left font-sans tracking-wide"
                   >
                     {label}
@@ -193,14 +195,153 @@ export default function Footer({ onOpenModal }) {
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="w-full h-px bg-ivory/20 mt-[5vh] mb-[3vh]" />
+        {/* DESKTOP Divider & Bottom strip */}
+        <div className="hidden md:block">
+          <div className="w-full h-px bg-ivory/20 mt-[5vh] mb-[3vh]" />
+          <div className="flex flex-col justify-center items-center gap-2">
+            <span className="text-[0.6rem] tracking-[0.2em] uppercase text-ivory/60 text-center">
+              © 2026 Nidhi Marque.<span className="accent">One</span> Motors Pvt. Ltd. All rights reserved.
+            </span>
+          </div>
+        </div>
 
-        {/* Bottom strip */}
-        <div className="flex flex-col justify-center items-center gap-2">
-          <span className="text-[0.6rem] tracking-[0.2em] uppercase text-ivory/60 text-center">
-            © 2026 Nidhi Marque.<span className="accent">One</span> Motors Pvt. Ltd. All rights reserved.
-          </span>
+        {/* MOBILE BENTO GRID (Visible only on < md) */}
+        <div className="md:hidden grid grid-cols-2 gap-3">
+          {/* Bento Tile 1: Hero Branding & Socials */}
+          <div className="col-span-2 flex flex-col items-center text-center gap-3 py-4">
+            <Link
+              to="/"
+              className="bg-transparent border-none p-0 cursor-pointer group flex flex-col items-center justify-center"
+              aria-label="Marque One Home"
+            >
+              <img
+                src="/logo-red.svg"
+                alt="Marque One Motorsport Club"
+                className="h-16 w-auto opacity-90 group-hover:opacity-100 transition-opacity duration-300 mx-auto"
+              />
+              <p className="font-serif text-[1.45rem] font-bold tracking-[0.16em] text-ivory mt-2.5 leading-none">
+                MARQUE.<span style={{ color: '#cc0000' }}>ONE</span>
+              </p>
+            </Link>
+            <p className="text-[0.62rem] tracking-[0.22em] uppercase text-ivory/50 font-sans">
+              Private Motoring Sanctuary · Bengaluru
+            </p>
+
+            {/* Social links - Desktop button format */}
+            <div className="flex items-center justify-center gap-3 pt-1">
+              {SOCIALS.map(({ Icon, href, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  target={href.startsWith('http') ? '_blank' : undefined}
+                  rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  className="tap-target w-8 h-8 border border-ivory/30 flex items-center justify-center text-ivory/70 hover:text-ivory hover:border-ivory/70 transition-all duration-200"
+                >
+                  <Icon size={13} />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Bento Tile 2: Explore Navigation */}
+          <div className="col-span-1 rounded-sm bg-[#0e0e0d] p-4 flex flex-col justify-between">
+            <div>
+              <div className="mb-3.5">
+                <span className="text-[0.62rem] font-medium tracking-[0.2em] uppercase text-ivory/60">
+                  Explore
+                </span>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {EXPLORE.map(({ label, path }) => (
+                  <Link
+                    key={label}
+                    to={path}
+                    className="group flex items-center justify-between text-[0.82rem] font-light text-ivory/80 hover:text-ivory active:text-brand transition-colors font-sans py-0.5"
+                  >
+                    <span>{label}</span>
+                    <span className="text-[0.65rem] text-ivory/30 group-hover:text-ivory/80 group-hover:translate-x-0.5 transition-all">→</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Bento Tile 3: Enquiries */}
+          <div className="col-span-1 rounded-sm bg-[#0e0e0d] p-4 flex flex-col justify-between">
+            <div>
+              <div className="mb-3.5">
+                <span className="text-[0.62rem] font-medium tracking-[0.2em] uppercase text-ivory/60">
+                  Enquiries
+                </span>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                <button
+                  onClick={() => openContact('Drive', 'Footer')}
+                  className="group flex items-center justify-between text-left text-[0.82rem] font-light text-ivory/80 hover:text-ivory transition-colors font-sans py-0.5 cursor-pointer bg-transparent border-none w-full"
+                >
+                  <span>Contact</span>
+                  <span className="text-[0.65rem] text-ivory/30 group-hover:text-ivory/80 group-hover:translate-x-0.5 transition-all">→</span>
+                </button>
+
+                <button
+                  onClick={() => onOpenModal('Footer')}
+                  className="group flex items-center justify-between text-left text-[0.82rem] font-light text-ivory/80 hover:text-ivory transition-colors font-sans py-0.5 cursor-pointer bg-transparent border-none w-full"
+                >
+                  <span>Membership</span>
+                  <span className="text-[0.65rem] text-brand group-hover:translate-x-0.5 transition-all font-bold">★</span>
+                </button>
+
+                <a
+                  href="mailto:project.motorclub@marque.one"
+                  className="group flex items-center justify-between text-[0.82rem] font-light text-ivory/80 hover:text-ivory transition-colors font-sans py-0.5"
+                >
+                  <span>General</span>
+                  <span className="text-[0.65rem] text-ivory/30 group-hover:text-ivory/80 group-hover:translate-x-0.5 transition-all">→</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Bento Tile 4: Direct Concierge Line */}
+          <div className="col-span-2 rounded-sm bg-[#0e0e0d] p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <Mail size={16} className="text-ivory/60 flex-shrink-0" />
+              <div className="flex flex-col text-left">
+                <span className="text-[0.58rem] tracking-[0.2em] uppercase text-ivory/50">Direct Concierge</span>
+                <a
+                  href="mailto:project.motorclub@marque.one"
+                  className="text-[0.78rem] font-medium text-ivory hover:text-brand transition-colors font-sans break-all"
+                >
+                  project.motorclub@marque.one
+                </a>
+              </div>
+            </div>
+            <LiquidButton
+              as="a"
+              href="mailto:project.motorclub@marque.one"
+              className="w-full sm:w-auto text-center"
+            >
+              Write to us →
+            </LiquidButton>
+          </div>
+
+          {/* Bento Tile 5: Legal & Colophon */}
+          <div className="col-span-2 flex flex-col items-center gap-3 text-center pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              {LEGAL.map(({ label }) => (
+                <button
+                  key={label}
+                  className="text-[0.72rem] tracking-wider text-ivory/60 hover:text-ivory transition-all font-sans cursor-pointer bg-transparent border-none p-0"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[0.58rem] tracking-[0.18em] uppercase text-ivory/40 leading-relaxed max-w-[340px] pt-1">
+              © 2026 Nidhi Marque.<span className="accent">One</span> Motors Pvt. Ltd. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
 

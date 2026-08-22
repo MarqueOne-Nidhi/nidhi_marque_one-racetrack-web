@@ -153,7 +153,7 @@ export default function About() {
                   href={b.link}
                   target={b.link.startsWith('http') ? '_blank' : undefined}
                   rel={b.link.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className="inline-flex items-center gap-1.5 text-[0.72rem] tracking-widest uppercase ink-faint hover:text-[#cc0000] hover:translate-x-1 transition-all mt-6 font-medium group cursor-pointer"
+                  className="tap-target inline-flex items-center gap-1.5 text-[0.72rem] tracking-widest uppercase ink-faint hover:text-[#cc0000] hover:translate-x-1 transition-all mt-6 font-medium group cursor-pointer"
                 >
                   <span>Visit</span>
                   <span className="group-hover:translate-x-0.5 transition-transform">→</span>

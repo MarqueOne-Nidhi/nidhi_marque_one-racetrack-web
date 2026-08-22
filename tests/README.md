@@ -7,7 +7,7 @@
 `npm test` never touches the network. `test:live` is the deliberate exception;
 see test_usage.md.
 
-146 tests over the whole submission path, from a visitor typing in a field to a
+248 tests over the whole submission path, from a visitor typing in a field to a
 row landing under the right column heading.
 
 ## The files
@@ -20,6 +20,9 @@ row landing under the right column heading.
 | `membership-form.test.jsx` | the club membership request |
 | `entry-points.test.jsx` | getting to a form, and arriving with the right context |
 | `contract.test.jsx` | the agreement between what the site sends and what the sheet has columns for |
+| `scroll-lock.test.js` | the counted lock that holds the page still behind a panel |
+| `number-ticker.test.jsx` | the counting figures, and that the figure reaches the page at all |
+| `circuit-section.test.jsx` | the circuit section's two layouts, and that only one drawing exists |
 
 `helpers/appsScript.js` evaluates `Code.gs` under fake Google services.
 `helpers/endpoint.js` replaces `fetch` and records what the site tried to send.
@@ -68,6 +71,7 @@ means anything.
 | a call to action that forgets to name itself | 1 |
 | a form that stops reporting failure to the visitor | 4 |
 | the membership form dropping its optional fields | 2 |
+| a figure that only prints once its animation starts | 4 |
 
 ## What is not covered here
 

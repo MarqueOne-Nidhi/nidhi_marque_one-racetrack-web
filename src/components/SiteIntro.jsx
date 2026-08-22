@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { holdScroll } from '../lib/scrollLock';
 
 /**
  * Marque.One — Cinematic Brand Intro with Dust-Led Website Reveal
@@ -24,6 +25,10 @@ export default function SiteIntro({ onComplete }) {
   const curtainRef = useRef(null);
   const canvasRef = useRef(null);
   const animFrameRef = useRef(null);
+  // The disintegration finishes long after the effect that started it, and
+  // the intro then renders null without unmounting, so the hold on the page
+  // has to be reachable from both places. Releasing twice is harmless.
+  const releaseScrollRef = useRef(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -47,9 +52,9 @@ export default function SiteIntro({ onComplete }) {
       return;
     }
 
-    // Lock page scrolling while intro plays
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    // Lock page scrolling while intro plays. Counted and shared, in
+    // lib/scrollLock, so nothing else holding the page loses it here.
+    releaseScrollRef.current = holdScroll();
 
     // Master Timeline Choreography
     const t1 = setTimeout(() => setPhase('drawing'), 50);
@@ -68,7 +73,7 @@ export default function SiteIntro({ onComplete }) {
       clearTimeout(t4);
       clearTimeout(t5);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      document.body.style.overflow = originalOverflow;
+      releaseScrollRef.current?.();
     };
   }, [onComplete]);
 
@@ -266,7 +271,7 @@ export default function SiteIntro({ onComplete }) {
       } else {
         // Complete transition only after all particles and reveal are 100% finished
         sessionStorage.setItem('marqueIntroSeen', 'true');
-        document.body.style.overflow = '';
+        releaseScrollRef.current?.();
         setPhase('done');
         onComplete?.();
       }

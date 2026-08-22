@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LiquidButton from './ui/LiquidButton';
+import SectionLink from './ui/SectionLink';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,6 +15,37 @@ import {
 } from './ui/navigation-menu';
 import { NAV_LINKS } from '../data/navigation';
 import { useContactModal } from './ContactModal';
+import { holdScroll } from '../lib/scrollLock';
+
+/**
+ * The drawer's motion.
+ *
+ * Opening, the rows arrive from the right edge one after another and settle;
+ * closing, they leave the way they came, in reverse order so the list empties
+ * from the bottom up rather than unravelling from the top. The panel itself
+ * only fades: two things sliding at once reads as the whole page moving.
+ *
+ * Exiting is quicker than entering, and on a sharper curve. A reader who has
+ * asked to close something has already decided, and watching it leave at the
+ * pace it arrived is the part that feels slow.
+ */
+const DRAWER = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.2, staggerChildren: 0.055, delayChildren: 0.06 },
+  },
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.25, delay: 0.12, staggerChildren: 0.04, staggerDirection: -1 },
+  },
+};
+
+const ROW = {
+  hidden: { opacity: 0, x: 56 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } },
+  exit: { opacity: 0, x: 56, transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } },
+};
 
 /**
  * The bar.
@@ -25,11 +57,11 @@ import { useContactModal } from './ContactModal';
  * open item, a ref to every item to measure from, and a resize listener to
  * re-aim it all. None of that is here now.
  *
- * A Base UI trigger is a button, so an item with a panel is no longer itself
- * the link to its page. Nothing is stranded by that: every panel's first entry
- * is the top of the page it belongs to, so /business#business is /business.
- * The panel carried an explicit page link for a while and it only ever
- * repeated the trigger directly above it.
+ * A Base UI trigger is a button by default, which would leave Home, The Club
+ * and Business as handles for their panels and nothing else: no way to reach
+ * the page itself except through a section of it. Each one is given its `to`
+ * and rendered as a link instead, so hovering opens the panel and clicking
+ * goes to the page. About has no panel and is a link outright.
  */
 export default function Navbar({ onOpenModal, activeTheme }) {
   const openContact = useContactModal();
@@ -67,6 +99,26 @@ export default function Navbar({ onOpenModal, activeTheme }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // The drawer covers the phone from the bar down, so the page underneath
+  // has to stop moving: it was scrolling behind the menu, which is how you
+  // open the menu, close it, and find yourself somewhere else on the page.
+  // Escape closes it too, as it does the panels.
+  useEffect(() => {
+    if (!isMobileMenuOpen) return undefined;
+
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', handleKey);
+
+    const release = holdScroll();
+
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      release();
+    };
+  }, [isMobileMenuOpen]);
+
   const isLight = activeTheme === 'light';
 
   const logoSrc = isLogoHovered
@@ -99,7 +151,7 @@ export default function Navbar({ onOpenModal, activeTheme }) {
           to="/"
           onMouseEnter={() => setIsLogoHovered(true)}
           onMouseLeave={() => setIsLogoHovered(false)}
-          className="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0"
+          className="tap-target flex items-center gap-2 cursor-pointer bg-transparent border-none p-0"
           aria-label="Marque One Home"
         >
           <img
@@ -136,16 +188,15 @@ export default function Navbar({ onOpenModal, activeTheme }) {
 
               return (
                 <NavigationMenuItem key={link.path}>
-                  <NavigationMenuTrigger>{link.label}</NavigationMenuTrigger>
+                  <NavigationMenuTrigger to={link.path}>{link.label}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     {/* No heading. It only ever repeated the trigger sitting
-                        directly above it, and the page is not stranded
-                        without it: every first entry is the top of its own
-                        page, so /business#business is /business. */}
+                        directly above it, which is now the link to the page
+                        as well, so there is nothing left for it to say. */}
                     <ul className="m-0 flex list-none flex-col gap-0.5 p-0">
                       {sections.map((item) => (
                         <li key={item.path}>
-                          <NavigationMenuLink render={<Link to={item.path} />}>
+                          <NavigationMenuLink render={<SectionLink to={item.path} />}>
                             {item.label}
                           </NavigationMenuLink>
                         </li>
@@ -164,13 +215,31 @@ export default function Navbar({ onOpenModal, activeTheme }) {
           </LiquidButton>
         </div>
 
+        {/* The two marks are one control, so they turn into each other rather
+            than cutting: the bars rotate out to the left as the cross rotates
+            in from the right, which is the direction the drawer behind them
+            is travelling. `close-x` adds the quarter turn under a finger that
+            the close mark on both panels has. */}
         <button
           onClick={() => setIsMobileMenuOpen((v) => !v)}
-          className={`md:hidden p-2 bg-transparent border-none cursor-pointer ${textColorClass}`}
+          className={`close-x tap-target md:hidden p-2 bg-transparent border-none cursor-pointer ${textColorClass}`}
           aria-label="Toggle Navigation"
           aria-expanded={isMobileMenuOpen}
         >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          <span className="relative block h-6 w-6">
+            <AnimatePresence initial={false} mode="popLayout">
+              <motion.span
+                key={isMobileMenuOpen ? 'close' : 'open'}
+                initial={{ opacity: 0, rotate: isMobileMenuOpen ? -90 : 90, scale: 0.7 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: isMobileMenuOpen ? 90 : -90, scale: 0.7 }}
+                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute inset-0 block"
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </motion.span>
+            </AnimatePresence>
+          </span>
         </button>
       </nav>
 
@@ -181,11 +250,11 @@ export default function Navbar({ onOpenModal, activeTheme }) {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-x-0 top-[76px] bottom-0 z-40 md:hidden overflow-y-auto bg-dark/95 backdrop-blur-md px-[6vw] py-8"
+            variants={DRAWER}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed inset-0 z-40 md:hidden overflow-y-auto bg-dark px-[6vw] pb-8 pt-[calc(76px+2rem)]"
           >
             <ul className="m-0 flex list-none flex-col gap-1 p-0">
               {NAV_LINKS.map((link) => {
@@ -193,7 +262,11 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                 const isOpen = openMobileNav === link.path;
 
                 return (
-                  <li key={link.path} className="border-b border-ivory/10">
+                  <motion.li
+                    key={link.path}
+                    variants={ROW}
+                    className="border-b border-ivory/10"
+                  >
                     <div className="flex items-center justify-between">
                       <Link
                         to={link.path}
@@ -209,7 +282,7 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                           onClick={() => setOpenMobileNav(isOpen ? null : link.path)}
                           aria-label={`${isOpen ? 'Hide' : 'Show'} ${link.label} sections`}
                           aria-expanded={isOpen}
-                          className="cursor-pointer border-none bg-transparent p-3 text-ivory/60"
+                          className="tap-target cursor-pointer border-none bg-transparent p-3 text-ivory/60"
                         >
                           <ChevronDown
                             size={16}
@@ -230,24 +303,24 @@ export default function Navbar({ onOpenModal, activeTheme }) {
                         >
                           {sections.map((item) => (
                             <li key={item.path}>
-                              <Link
+                              <SectionLink
                                 to={item.path}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className="block py-2 font-sans text-[0.82rem] font-light text-ivory/70 no-underline"
                               >
                                 {item.label}
-                              </Link>
+                              </SectionLink>
                             </li>
                           ))}
                         </motion.ul>
                       )}
                     </AnimatePresence>
-                  </li>
+                  </motion.li>
                 );
               })}
             </ul>
 
-            <div className="mt-8">
+            <motion.div variants={ROW} className="mt-8">
               <LiquidButton
                 onClick={() => {
                   setIsMobileMenuOpen(false);
@@ -256,7 +329,7 @@ export default function Navbar({ onOpenModal, activeTheme }) {
               >
                 {ctaLabel} →
               </LiquidButton>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

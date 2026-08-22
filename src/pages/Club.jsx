@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import ClubIntro from '../components/ClubIntro';
 import Hero from '../components/Hero';
 import TheHook from '../components/TheHook';
@@ -10,21 +10,11 @@ import TheExperience from '../components/TheExperience';
 import Membership from '../components/Membership';
 import FinalScene from '../components/FinalScene';
 
+// The page used to run its own hash-scrolling effect on mount, a second
+// implementation of what ScrollToTop already does for every route, racing it
+// on a 100ms timer. Both aimed at the same section, so the duplication was
+// invisible rather than harmless.
 export default function Club({ onOpenModal }) {
-  // Ensure we can handle hash scrolling within the Club page
-  useEffect(() => {
-    if (window.location.hash) {
-      const id = window.location.hash.substring(1);
-      const el = document.getElementById(id);
-      if (el) {
-        setTimeout(() => {
-          const top = el.getBoundingClientRect().top + window.scrollY - 76;
-          window.scrollTo({ top, behavior: 'smooth' });
-        }, 100);
-      }
-    }
-  }, []);
-
   return (
     <div className="club-page relative min-h-screen bg-dark text-ivory">
       {/* Handwritten Brand Signature Opening for ONE.CLUB */}

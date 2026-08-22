@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import EnquiryForm from './EnquiryForm';
 import PaperSurface from './ui/PaperSurface';
 import { ENQUIRY } from '../data/home';
+import { holdScroll } from '../lib/scrollLock';
 
 /**
  * Contact, as a popover rather than a page.
@@ -71,7 +72,10 @@ export function ContactModalProvider({ children }) {
 function ContactModal({ isOpen, type, source, instance, onClose }) {
   // Escape closes it, and the page underneath does not scroll while it is
   // open: the drawer has its own scroll, and two scrollable planes at once is
-  // how a reader loses their place on the page they were reading.
+  // how a reader loses their place on the page they were reading. The lock is
+  // counted and shared, in lib/scrollLock: this panel opens over the club
+  // intro, which is holding the page too, and the one that finishes first
+  // must not hand the ground back while the other still wants it.
   useEffect(() => {
     if (!isOpen) return;
 
@@ -80,12 +84,11 @@ function ContactModal({ isOpen, type, source, instance, onClose }) {
     };
     window.addEventListener('keydown', handleKey);
 
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const release = holdScroll();
 
     return () => {
       window.removeEventListener('keydown', handleKey);
-      document.body.style.overflow = previous;
+      release();
     };
   }, [isOpen, onClose]);
 
@@ -151,7 +154,7 @@ function ContactModal({ isOpen, type, source, instance, onClose }) {
                 content, and above it in the stack. */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-20 p-2 bg-transparent border-none cursor-pointer opacity-50 hover:opacity-100 transition-opacity"
+              className="close-x tap-target absolute top-4 right-4 z-20 p-2 bg-transparent border-none cursor-pointer opacity-50 hover:opacity-100"
               style={{ color: '#14140F' }}
               aria-label="Close contact form"
             >

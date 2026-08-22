@@ -2,6 +2,7 @@ import React from 'react';
 import { Section } from './ui/Section';
 import { motion } from 'framer-motion';
 import BlurFadeText from './ui/BlurFadeText';
+import SectionLink from './ui/SectionLink';
 
 export default function TheClub() {
   const cards = [
@@ -57,13 +58,13 @@ export default function TheClub() {
       </div>
 
       <div>
-        <a
-          href="#house"
-          className="inline-flex items-center gap-2 text-[0.82rem] tracking-wider uppercase text-ivory hover:translate-x-1 transition-transform group"
+        <SectionLink
+          to="/club#house"
+          className="tap-target inline-flex items-center gap-2 text-[0.82rem] tracking-wider uppercase text-ivory hover:translate-x-1 transition-transform group"
         >
           <span>Explore the club</span>
           <span className="group-hover:translate-x-1 transition-transform">→</span>
-        </a>
+        </SectionLink>
       </div>
     </Section>
   );
