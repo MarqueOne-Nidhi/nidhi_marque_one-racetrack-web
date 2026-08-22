@@ -100,14 +100,22 @@ export default function EnquiryForm({
 
   return (
     <>
-      {/* Toggles */}
-      <div className="flex items-center gap-2 mb-10 border-b rule pb-4">
+      {/* Toggles.
+          Three fixed-width buttons in a row that is 288px wide inside the
+          panel on a small phone: Business ran 49px past the edge and was cut
+          in half by the panel's own clip. The padding and the gap close up
+          below the sm breakpoint, which is enough for all three to sit on one
+          line at 320px, where the sheet's own 8vw padding leaves about 237px
+          to work with. `flex-wrap` stays as the guarantee: a fourth enquiry
+          type, or a longer word, drops to a second line rather than off the
+          sheet, but the three there now do not reach it. */}
+      <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-10 border-b rule pb-4">
         {ENQUIRY.toggles.map((toggle) => (
           <button
             key={toggle}
             type="button"
             onClick={() => setActiveToggle(toggle)}
-            className={`px-5 py-2 text-[0.75rem] tracking-widest uppercase font-sans cursor-pointer transition-all duration-300 border-none ${
+            className={`tap-target px-2 py-2 sm:px-5 text-[0.75rem] tracking-widest uppercase font-sans cursor-pointer transition-all duration-300 border-none ${
               activeToggle === toggle
                 ? 'bg-[var(--ink)] text-[var(--surface)] font-medium'
                 : 'bg-transparent ink-faint hover:opacity-100'
@@ -202,9 +210,14 @@ export default function EnquiryForm({
             )}
           </LiquidButton>
 
+          {/* An address is one long word with no space to break at, and the
+              wide tracking made it 331px against a 278px sheet on a small
+              phone, so it ran off the edge. Smaller and set solid below sm,
+              where it fits on one line; `break-words` is the guarantee for
+              whatever address is put here next. */}
           <a
             href={`mailto:${ENQUIRY.email}`}
-            className="text-[0.8rem] tracking-widest uppercase ink-faint hover:text-[var(--accent)] transition-colors"
+            className="break-words text-[0.7rem] uppercase ink-faint transition-colors hover:text-[var(--accent)] sm:text-[0.8rem] sm:tracking-widest"
           >
             {ENQUIRY.email}
           </a>
