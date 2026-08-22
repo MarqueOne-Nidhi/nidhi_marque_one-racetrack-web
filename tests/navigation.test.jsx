@@ -30,12 +30,12 @@ function Probe() {
   return null;
 }
 
-const renderNav = (initial = '/') =>
+const renderNav = (initial = '/', theme = 'dark') =>
   render(
     <MemoryRouter initialEntries={[initial]}>
       <ContactModalProvider>
         <Probe />
-        <Navbar onOpenModal={() => {}} activeTheme="dark" />
+        <Navbar onOpenModal={() => {}} activeTheme={theme} />
         <Routes>
           <Route path="*" element={<div data-testid="page" />} />
         </Routes>
@@ -165,6 +165,62 @@ describe('the drawer on a phone', () => {
     const panel = document.querySelector('.z-40');
     expect(panel.className).toContain('bg-dark');
     expect(panel.className).not.toContain('bg-dark/');
+  });
+
+  /**
+   * The bar takes its colour from the section under it, and the drawer is
+   * dark whatever that section is. Opened over a light section, the mark and
+   * the close cross were still being drawn in ink, on a black panel: both
+   * disappeared, and the reader was left with no way back out that they could
+   * see.
+   */
+  describe('opened over a light section', () => {
+    const toggle = () => screen.getByRole('button', { name: /toggle navigation/i });
+
+    it('turns the mark white, so it is not ink on a black panel', async () => {
+      const user = setupUser();
+      renderNav('/', 'light');
+
+      expect(document.querySelector('nav img').getAttribute('src')).toBe('/logo-black.svg');
+
+      await user.click(toggle());
+
+      expect(document.querySelector('nav img').getAttribute('src')).toBe('/logo-white.svg');
+    });
+
+    it('turns the close cross with it', async () => {
+      const user = setupUser();
+      renderNav('/', 'light');
+
+      expect(toggle().className).toContain('text-dark');
+
+      await user.click(toggle());
+
+      expect(toggle().className).toContain('text-ivory');
+    });
+
+    it('gives the colours back when the drawer closes', async () => {
+      const user = setupUser();
+      renderNav('/', 'light');
+
+      await user.click(toggle());
+      await user.click(toggle());
+
+      await waitFor(() =>
+        expect(document.querySelector('nav img').getAttribute('src')).toBe('/logo-black.svg')
+      );
+      expect(toggle().className).toContain('text-dark');
+    });
+
+    it('leaves a dark section alone', async () => {
+      const user = setupUser();
+      renderNav('/', 'dark');
+
+      await user.click(toggle());
+
+      expect(document.querySelector('nav img').getAttribute('src')).toBe('/logo-white.svg');
+      expect(toggle().className).toContain('text-ivory');
+    });
   });
 });
 

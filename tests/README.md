@@ -7,7 +7,7 @@
 `npm test` never touches the network. `test:live` is the deliberate exception;
 see test_usage.md.
 
-256 tests over the whole submission path, from a visitor typing in a field to a
+260 tests over the whole submission path, from a visitor typing in a field to a
 row landing under the right column heading.
 
 ## The files
@@ -73,6 +73,7 @@ means anything.
 | a form that stops reporting failure to the visitor | 4 |
 | the membership form dropping its optional fields | 2 |
 | a figure that only prints once its animation starts | 4 |
+| the bar keeping the section's colours over the drawer | 2 |
 
 ## What is not covered here
 
