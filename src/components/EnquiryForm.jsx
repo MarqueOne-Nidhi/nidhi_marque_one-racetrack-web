@@ -105,15 +105,17 @@ export default function EnquiryForm({
           panel on a small phone: Business ran 49px past the edge and was cut
           in half by the panel's own clip. The padding and the gap close up
           below the sm breakpoint, which is enough for all three to sit on one
-          line at 320px, and `flex-wrap` means a fourth enquiry type, or a
-          longer word, drops to a second line instead of off the sheet. */}
-      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-10 border-b rule pb-4">
+          line at 320px, where the sheet's own 8vw padding leaves about 237px
+          to work with. `flex-wrap` stays as the guarantee: a fourth enquiry
+          type, or a longer word, drops to a second line rather than off the
+          sheet, but the three there now do not reach it. */}
+      <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-10 border-b rule pb-4">
         {ENQUIRY.toggles.map((toggle) => (
           <button
             key={toggle}
             type="button"
             onClick={() => setActiveToggle(toggle)}
-            className={`tap-target px-3 py-2 sm:px-5 text-[0.75rem] tracking-widest uppercase font-sans cursor-pointer transition-all duration-300 border-none ${
+            className={`tap-target px-2 py-2 sm:px-5 text-[0.75rem] tracking-widest uppercase font-sans cursor-pointer transition-all duration-300 border-none ${
               activeToggle === toggle
                 ? 'bg-[var(--ink)] text-[var(--surface)] font-medium'
                 : 'bg-transparent ink-faint hover:opacity-100'
